@@ -1,0 +1,291 @@
+/* Inherit sidebar styles from Analysis.css */
+@import url('Analysis.css');
+
+/* ————————————————  
+   LAYOUT & HEADER  
+   ———————————————— */
+.main-content {
+  margin-left: 14vw;
+  width: calc(100% - 14vw);
+  padding: 2rem;
+}
+.header {
+  margin-left: 2rem;
+}
+.header h1 {
+  color: #636ae8;
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+.header p {
+  color: #979797;
+  margin-top: 0;
+  font-size: 14px;
+}
+
+/* ————————————————  
+   SEARCH SECTION  
+   ———————————————— */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 6rem;
+}
+.search-section h2 {
+  margin-bottom: 2rem;
+  font-weight: 500;
+}
+.search-form {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.input-box {
+  width: 360px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid #211C83;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+.degree-select {
+  width: 360px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid #211C83;
+  border-radius: 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='18' viewBox='0 0 24 24' width='18' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  appearance: none;
+  box-sizing: border-box;
+  text-align: left;
+  color: #000;
+  cursor: pointer;
+}
+.degree-select option {
+  text-align: center;
+  color: #000;
+}
+.search-btn {
+  height: 48px;
+  width: 48px;
+  background-color: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+.search-text {
+  display: none;
+  margin-left: 8px;
+  font-size: 14px;
+}
+.search-btn:hover {
+  width: 100px;
+  padding: 0 16px;
+}
+.search-btn:hover .search-text {
+  display: inline;
+}
+.search-btn:hover i {
+  font-weight: bold;
+}
+
+/* ————————————————  
+   FOOTER  
+   ———————————————— */
+footer {
+  margin-top: 600px;
+  font-size: 12px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ————————————————  
+   RESPONSIVE  
+   ———————————————— */
+@media (max-width: 1024px) {
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .input-box,
+  .degree-select {
+    width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .relationship-container {
+    flex-direction: column;
+  }
+  .sidebar-menu {
+    position: relative;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+  }
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+    padding: 1rem;
+  }
+  .sidebar-menu .sidebar-footer {
+    display: none;
+  }
+  .search-section {
+    margin-top: 2rem;
+  }
+  .header {
+    margin-left: 0;
+    text-align: center;
+  }
+  .search-btn {
+    width: 100%;
+  }
+  .search-btn:hover {
+    width: 100%;
+  }
+  .search-text {
+    display: inline;
+  }
+}
+
+/* ————————————————  
+   FAMILY‐TREE LAYOUT  
+   ———————————————— */
+.tree-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+  position: relative;
+}
+.tree-children {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4rem;
+  margin-top: 2rem;
+  position: relative;
+}
+
+/* ─ Top‐row parents (Target ↔ Spouse / siblings+couple for 2nd degree) */
+.tree-children.top-row {
+  position: relative;
+}
+.tree-children.top-row::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #ccc;
+  z-index: 0;
+}
+.tree-children.top-row .tree-node {
+  z-index: 1;
+  background: #fff;
+}
+.tree-children.top-row::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1.5rem;
+  background: #ccc;
+  z-index: 0;
+}
+
+/* ─ Other rows (children, siblings, etc.) */
+.tree-children:not(.top-row)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #ccc;
+  z-index: 0;
+}
+.tree-children:not(.top-row) .tree-node::before {
+  content: "";
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 1.5rem;
+  background: #ccc;
+  z-index: 0;
+}
+
+/* node container */
+.tree-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* circular avatar */
+.profile-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #636ae8;
+  margin-bottom: 0.5rem;
+}
+
+/* text under avatar */
+.tree-node strong,
+.tree-node em {
+  display: block;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+.tree-node strong {
+  font-size: 14px;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+.tree-node em {
+  font-style: normal;
+  font-size: 12px;
+  color: #666;
+}
+
+/* ─ Highlight Target node ─ */
+.tree-node.target .profile-img {
+  border-color: #812dd38a;
+  border-width: 4px;
+}
+.tree-node.target strong {
+  color: black;
+}
+.tree-node.target em {
+  font-weight: bold;
+  color: #6db3ed;
+}

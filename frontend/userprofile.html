@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relationship Analysis</title>
+  <link rel="stylesheet" href="/css/userprofile.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+ 
+</head>
+<body>
+  <div class="relationship-container">
+    <div class="sidebar-menu">
+      <div class="sidebar-header">
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <p style="margin: 0;">
+            <a href="#">ARM Dashboard</a>
+          </p>
+          <div class="toggle-btn" onclick="toggleSidebar()" style="cursor: pointer;">
+            <i class="bi bi-list"></i>
+          </div>
+        </div>
+        <hr />
+      </div>
+      <div class="sidebar-nav">
+        <nav>
+          <a href="Dashboard.html">
+            <img src="image/home.png" class="icon" alt="Home" />
+            <span>Dashboard</span>
+          </a>
+          <a href="relationship-mapping.html" >
+            <img src="image/rm icon.png" class="icon" alt="Relationship Mapping" />
+            <span>Relationship Mapping</span>
+          </a>
+          <a href="analysis.html">
+            <img src="image/ai icon.png" class="icon" alt="Analysis" />
+            <span>Analysis</span>
+          </a>
+          <a href="records.html">
+            <img src="image/record icon.png" class="icon" alt="Citizen Record" />
+            <span>Citizen Record</span>
+          </a>
+          <a href="audit.html">
+            <img src="image/audit icon.png" class="icon" alt="Audit Log" />
+            <span>Audit Log</span>
+          </a>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <a href="userprofile.html"><img src="image/profile.jpg" class="user-img" alt="User profile" />
+          <p>Username</p></a>
+      </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+    <h1>User Profile</h1>
+    <div class="profile-section">
+      
+      <!-- Personal Information -->
+      <div class="personal-info">
+        <div class="header">
+          <div>
+            <h2>Personal Information</h2>
+            <p>Update your personal information</p>
+          </div>
+          <button class="edit-btn" id="editSaveBtn"><i class="bi bi-pencil"></i> Edit</button>
+
+        </div>
+        
+        <form id="profileForm">
+  <div class="form-row">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="fullName" disabled />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" disabled />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Phone Number</label>
+      <input type="text" id="phone" disabled />
+    </div>
+    <div class="form-group">
+      <label>Department</label>
+      <input type="text" id="department" disabled />
+    </div>
+  </div>
+</form>
+
+      </div>
+
+      <!-- Profile Preview -->
+      <div class="profile-preview">
+        <h3>How your profile look in public</h3>
+        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Profile" class="profile-pic" />
+        <p class="username">Username</p>
+        <p class="user-email">Username@gmail.com</p>
+        <div class="btn-group">
+          <button class="upload-btn">Upload Photo</button>
+          <button class="remove-btn">Remove photo</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+        
+    </div>
+  </div>
+  <script src="script/sidebar.js">
+    
+  </script>
+ <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // ========== Upload / Remove Photo ==========
+    const uploadBtn = document.querySelector(".upload-btn");
+    const removeBtn = document.querySelector(".remove-btn");
+    const profilePic = document.querySelector(".profile-pic");
+
+    // Create hidden file input
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
+
+    // Upload Photo
+    uploadBtn.addEventListener("click", function () {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener("change", function () {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          profilePic.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Remove Photo
+    removeBtn.addEventListener("click", function () {
+      profilePic.src = "https://www.w3schools.com/howto/img_avatar.png"; // Default image
+    });
+
+    // ========== Edit / Save Profile Form ==========
+    const editSaveBtn = document.getElementById("editSaveBtn");
+    const form = document.getElementById("profileForm");
+    const inputs = form.querySelectorAll("input");
+
+    // Default sample data (can be fetched from DB in real apps)
+    const userData = {
+      fullName: "Pelden Wangchuk",
+      email: "pelden@gmail.com",
+      phone: "+975 77XXXXXX",
+      department: "AI & Data Science"
+    };
+
+    // Populate fields
+    document.getElementById("fullName").value = userData.fullName;
+    document.getElementById("email").value = userData.email;
+    document.getElementById("phone").value = userData.phone;
+    document.getElementById("department").value = userData.department;
+
+    let isEditing = false;
+
+    editSaveBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (!isEditing) {
+        // Enable editing
+        inputs.forEach(input => input.disabled = false);
+        editSaveBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save';
+        isEditing = true;
+      } else {
+        // Show confirmation dialog
+        if (confirm("Are you sure you want to save the changes?")) {
+          // Save updated values (for demo just log to console)
+          userData.fullName = document.getElementById("fullName").value;
+          userData.email = document.getElementById("email").value;
+          userData.phone = document.getElementById("phone").value;
+          userData.department = document.getElementById("department").value;
+
+          console.log("Updated user data:", userData);
+
+          // Disable inputs and toggle button
+          inputs.forEach(input => input.disabled = true);
+          editSaveBtn.innerHTML = '<i class="bi bi-pencil"></i> Edit';
+          isEditing = false;
+        }
+        // If cancel: stay in edit mode
+      }
+    });
+  });
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Relationship Mapping</title>
+  <link rel="stylesheet" href="/css/Analysis.css" />
+  <link rel="stylesheet" href="/css/relationship-mapping.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body>
+  <div class="relationship-container">
+    <!-- Sidebar (unchanged) -->
+    <div class="sidebar-menu">
+      <div class="sidebar-header">
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <p style="margin: 0;"><a href="#">ARM Dashboard</a></p>
+          <div class="toggle-btn" onclick="toggleSidebar()" style="cursor: pointer;">
+            <i class="bi bi-list"></i>
+          </div>
+        </div>
+        <hr />
+      </div>
+      <div class="sidebar-nav">
+        <nav>
+          <a href="Dashboard.html"><img src="image/home.png" class="icon" alt="Home" /><span>Dashboard</span></a>
+          <a href="relationship-mapping.html" class="active"><img src="image/rm icon.png" class="icon" alt="Relationship Mapping" /><span>Relationship Mapping</span></a>
+          <a href="analysis.html"><img src="image/ai icon.png" class="icon" alt="Analysis" /><span>Analysis</span></a>
+          <a href="records.html"><img src="image/record icon.png" class="icon" alt="Citizen Record" /><span>Citizen Record</span></a>
+          <a href="#"><img src="image/audit icon.png" class="icon" alt="Audit Log" /><span>Audit Log</span></a>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <a href="#"><img src="image/profile.jpg" class="user-img" alt="User profile" /><p>Username</p></a>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="main-content">
+      <div class="header">
+        <h1>Relationship Mapping</h1>
+        <p>Quick family tree generator</p>
+      </div>
+
+      <div class="search-section">
+        <h2>Search Citizen</h2>
+        <div class="search-form">
+          <input id="cidInput" type="text" class="input-box" placeholder="Enter citizen ID to view family ties" />
+          <select id="degreeSelect" class="input-box degree-select">
+            <option selected disabled>Select Degree</option>
+            <option value="1">1st Degree</option>
+            <option value="2">2nd Degree</option>
+            <option value="3">3rd Degree</option>
+          </select>
+          <button id="searchBtn" class="search-btn">
+            <i class="bi bi-search"></i>
+            <span class="search-text">Search</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tree injected here -->
+      <div id="familyTreeContainer"></div>
+
+      <footer>
+        © 2025 Anti-Corruption Commission of Bhutan. All rights reserved.
+      </footer>
+    </div>
+  </div>
+
+  <script src="script/sidebar.js"></script>
+  <script src="script/relationship-mapping.js"></script>
+</body>
+</html>
