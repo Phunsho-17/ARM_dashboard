@@ -75,6 +75,11 @@
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
 }
 
+.card p{
+  margin-top: -5px;
+  color:#64748B;
+}
+
 .card h2 {
     margin-bottom: 8px;
 }
