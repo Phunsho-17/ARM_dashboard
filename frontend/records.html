@@ -359,77 +359,72 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // Export table as PNG image
-document.querySelector(".pdf-save").addEventListener("click", async () => {
-  buildFullDataTable(); // Your function to fill the full-data-table
-  const table = document.getElementById("full-data-table");
-  table.style.display = "table"; // Make it visible temporarily
+  // ✅ Export table as PNG image 
+  document.querySelector(".img-save").addEventListener("click", () => {
+    const table = document.querySelector("table");
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('l', 'mm', 'a4');
+    html2canvas(table, { scale: 2 }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "citizen-records.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }).catch(err => {
+      console.error("❌ Error exporting image:", err);
+    });
+  });
 
-  // Convert table to canvas with scale for higher clarity
-  const canvas = await html2canvas(table, { scale: 3 });
-  const imgData = canvas.toDataURL("image/png");
-
-  const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = doc.internal.pageSize.getHeight();
-
-  const canvasWidth = canvas.width;
-  const canvasHeight = canvas.height;
-
-  const imgProps = doc.getImageProperties(imgData);
-  const imgRatio = imgProps.width / imgProps.height;
-
-  const pdfImgWidth = pdfWidth;
-  const pdfImgHeight = pdfImgWidth / imgRatio;
-
-  let heightLeft = pdfImgHeight;
-  let position = 0;
-
-  // Loop to slice canvas and add to PDF page by page
-  while (position < canvasHeight) {
-    const pageCanvas = document.createElement("canvas");
-    const pageHeight = Math.min(canvasHeight - position, canvasHeight * (pdfHeight / pdfImgHeight));
-
-    pageCanvas.width = canvasWidth;
-    pageCanvas.height = pageHeight;
-
-    const pageCtx = pageCanvas.getContext("2d");
-    pageCtx.drawImage(canvas, 0, position, canvasWidth, pageHeight, 0, 0, canvasWidth, pageHeight);
-
-    const pageImgData = pageCanvas.toDataURL("image/png");
-    doc.addImage(pageImgData, 'PNG', 0, 0, pdfWidth, (pageHeight / canvasWidth) * pdfWidth);
-
-    position += pageHeight;
-    if (position < canvasHeight) doc.addPage();
-  }
-
-  table.style.display = "none"; // Re-hide the table
-  doc.save("citizen-records-full.pdf");
-});
-
-
-  // Export table as PDF
+  // ✅ Export table as multi-page PDF 
   document.querySelector(".pdf-save").addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'mm', 'a4');
 
     const table = document.querySelector("table");
-    const canvas = await html2canvas(table);
+
+    // High resolution canvas for clarity
+    const canvas = await html2canvas(table, { scale: 2 });
     const imgData = canvas.toDataURL("image/png");
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const imgProps = doc.getImageProperties(imgData);
-    const pdfWidth = pageWidth - 20;
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    doc.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    while (heightLeft > 0) {
+      const sourceY = (canvas.height * position) / imgHeight;
+
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = (canvas.width * pageHeight) / pageWidth;
+
+      const ctx = pageCanvas.getContext("2d");
+      ctx.drawImage(
+        canvas,
+        0,
+        sourceY,
+        canvas.width,
+        pageCanvas.height,
+        0,
+        0,
+        canvas.width,
+        pageCanvas.height
+      );
+
+      const pageImgData = pageCanvas.toDataURL("image/png");
+      doc.addImage(pageImgData, 'PNG', 0, 0, pageWidth, (pageCanvas.height * pageWidth) / canvas.width);
+
+      heightLeft -= pageCanvas.height * (imgWidth / canvas.width);
+      position += (pageCanvas.height * imgWidth) / canvas.width;
+
+      if (heightLeft > 0) doc.addPage();
+    }
+
     doc.save("citizen-records.pdf");
   });
 </script>
-
   
   
 

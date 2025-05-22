@@ -48,7 +48,7 @@
 
 /* Inputs & button styling (unchanged) */
 .input-box {
-  width: 360px;
+  width: 50%;
   height: 48px;
   padding: 0 16px;
   border: 1.5px solid #211C83;
@@ -56,6 +56,11 @@
   font: 14px 'Inter', sans-serif;
   box-sizing: border-box;
 }
+
+#cidInput::placeholder {
+  font-size: 12px; 
+}
+
 .degree-select {
   width: 360px;
   height: 48px;
