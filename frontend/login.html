@@ -84,8 +84,11 @@
     const popupIcon = document.getElementById("popup-icon");
 
     const predefinedUser = {
+      username:"admin",
       email: "admin@example.com",
-      password: "admin123"
+      password: "admin123",
+      contact:"+975 17123456",
+      department:"Investigation Berue"
     };
 
     loginForm.addEventListener("submit", function (e) {
@@ -119,18 +122,22 @@
       }, 2000);
 
       if (email === predefinedUser.email && password === predefinedUser.password) {
-        // Success
+        // Store user data
+        localStorage.setItem("user", JSON.stringify(predefinedUser));
+
+        // Show success popup
         popupMessage.textContent = "Login Successful!";
         popupIcon.textContent = "✔";
         popup.classList.remove("error");
         popup.classList.add("success");
         popup.style.display = "block";
 
-        setTimeout(() => {
-          popup.style.display = "none";
-          window.location.href = "Dashboard.html";
+      setTimeout(() => {
+        popup.style.display = "none";
+        window.location.href = "userprofile.html"; // Redirect to profile page
         }, 2000);
-      } else {
+    }
+      else {
         // Error
         popupMessage.textContent = "Invalid email or password!";
         popupIcon.textContent = "✖";

@@ -47,12 +47,13 @@
         </a>
       </nav>
   </div>
-  <div class="sidebar-footer">
-    <a href="userprofile.html">
-      <img src="image/profile.jpg" class="user-img" alt="User profile" />
-      <p>Username</p>
-    </a>
-  </div>
+<div class="sidebar-footer">
+  <a href="userprofile.html">
+    <img id="sidebarProfilePic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-img" alt="User profile" />
+    <p id="sidebarUsername">Username</p>
+  </a>
+</div>
+
   </div>
     <!-- Sidebar -->
     <!-- <div class="sidebar-menu">
@@ -219,7 +220,25 @@
       sidebar.classList.toggle('collapsed');
     }
     </script>
-    
+    <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebarUsername = document.getElementById("sidebarUsername");
+    const sidebarProfilePic = document.getElementById("sidebarProfilePic");
+
+    const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+    const storedProfilePic = localStorage.getItem("profilePic");
+
+    const fullName = storedUser.fullName || storedUser.username || "User";
+    if (sidebarUsername) {
+      sidebarUsername.textContent = fullName;
+    }
+
+    if (sidebarProfilePic && storedProfilePic) {
+      sidebarProfilePic.src = storedProfilePic;
+    }
+  });
+</script>
+
 
   
 </body>

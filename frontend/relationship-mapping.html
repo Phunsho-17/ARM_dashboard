@@ -51,12 +51,12 @@
         </a>
       </nav>
   </div>
-  <div class="sidebar-footer">
-    <a href="userprofile.html">
-      <img src="image/profile.jpg" class="user-img" alt="User profile" />
-      <p>Username</p>
-    </a>
-  </div>
+ <div class="sidebar-footer">
+  <a href="userprofile.html">
+    <img id="sidebarProfilePic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-img" alt="User profile" />
+    <p id="sidebarUsername">Username</p>
+  </a>
+</div>
   </div>
 
     <!-- Main content -->
@@ -125,5 +125,28 @@
   <!-- Your Scripts -->
   <script src="script/sidebar.js"></script>
   <script src="script/relationship-mapping.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Load user info from localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+    const storedProfilePic = localStorage.getItem("profilePic");
+
+    // Get sidebar elements
+    const sidebarUsername = document.getElementById("sidebarUsername");
+    const sidebarProfilePic = document.getElementById("sidebarProfilePic");
+
+    // Set full name or fallback to username
+    const displayName = storedUser.fullName || storedUser.username || "User";
+    if (sidebarUsername) {
+      sidebarUsername.textContent = displayName;
+    }
+
+    // Set profile image if available
+    if (sidebarProfilePic && storedProfilePic) {
+      sidebarProfilePic.src = storedProfilePic;
+    }
+  });
+</script>
+
 </body>
 </html>
