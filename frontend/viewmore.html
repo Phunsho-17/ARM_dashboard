@@ -9,30 +9,7 @@
 </head>
 <body>
   <div class="relationship-container">
-    <!-- Sidebar -->
-    <div class="sidebar-menu">
-      <div class="sidebar-header">
-        <div style="display: flex; align-items: center; justify-content: center;">
-          <p style="margin: 0;"><a href="#">ARM Dashboard</a></p>
-          <div class="toggle-btn" onclick="toggleSidebar()" style="cursor: pointer;">
-            <i class="bi bi-list"></i>
-          </div>
-        </div>
-        <hr />
-      </div>
-      <div class="sidebar-nav">
-        <nav>
-          <a href="Dashboard.html"><img src="image/home.png" class="icon" alt="Home" /><span>Dashboard</span></a>
-          <a href="relationship-mapping.html"><img src="image/rm icon.png" class="icon" alt="Relationship Mapping" /><span>Relationship Mapping</span></a>
-          <a href="analysis.html"><img src="image/ai icon.png" class="icon" alt="Analysis" /><span>Analysis</span></a>
-          <a href="records.html"><img src="image/record icon.png" class="icon" alt="Citizen Record" /><span>Citizen Record</span></a>
-          <a href="audit.html"><img src="image/audit icon.png" class="icon" alt="Audit Log" /><span>Audit Log</span></a>
-        </nav>
-      </div>
-      <div class="sidebar-footer">
-        <a href="userprofile.html"><img src="image/profile.jpg" class="user-img" alt="User profile" /><p>Username</p></a>
-      </div>
-    </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -40,8 +17,9 @@
         <!-- Header -->
         <div class="header">
           <h1>Relationship Mapping</h1>
-          <p class="subtitle">Quick familia generator</p>
-          <button class="back-btn"><i class="bi bi-arrow-left"></i> Back</button>
+          <button class="back-btn" onclick="history.back()">
+            <i class="bi bi-arrow-left"></i> Back
+          </button>        
         </div>
 
         <!-- Personal Information -->
@@ -58,22 +36,15 @@
             <div class="triple-inputs">
               <div><label>Name:</label><input type="text" value="citizen name" /></div>
               <div><label>Citizenship ID No:</label><input type="text" value="citizenship id" /></div>
-              <div><label>CID Serial No:</label><input type="text" value="serial no" /></div>
             </div>
           </div>
           <div class="grid">
             <div><label>Sex:</label><input type="text" value="gender" /></div>
             <div><label>Date of Birth ( DD/MM/YYYY ):</label><input type="text" value="Date" /></div>
-            <div><label>Nationality:</label><input type="text" value="nationality" /></div>
-            <div><label>Marital Status:</label><input type="text" value="Status" /></div>
             <div><label>Religion:</label><input type="text" value="religion" /></div>
             <div><label>Occupation:</label><input type="text" value="occupation" /></div>
             <div><label>Higher Education Attained:</label><input type="text" value="education" /></div>
             <div><label>Citizenship By:</label><input type="text" value="citizen type" /></div>
-            <div><label>Person Status:</label><input type="text" value="status" /></div>
-            <div><label>Relation to Head of Household:</label><input type="text" value="HOH" /></div>
-            <div><label>Disability:</label><input type="text" value="normal" /></div>
-            <div><label>Census Status:</label><input type="text" value="Status" /></div>
           </div>
         </div>
 
@@ -95,35 +66,7 @@
           </div>
         </div>
 
-        <!-- Place of Birth -->
-        <div class="card">
-          <div class="card-header">
-            <h3>Place of Birth</h3>
-            <button onclick="toggleCollapse(this)" class="collapse-btn">
-              <i class="bi bi-chevron-up"></i> Collapse
-            </button>
-          </div>
-          <div class="grid">
-            <div><label>Country:</label><input type="text" value="country" /></div>
-            <div><label>Dzongkhag:</label><input type="text" value="dzongkhag" /></div>
-            <div><label>Gewog:</label><input type="text" value="gewog" /></div>
-            <div><label>Village:</label><input type="text" value="village" /></div>
-          </div>
-        </div>
-        <!-- Present Address -->
-        <div class="card">
-            <div class="card-header">
-                <h3>Present Address</h3>
-                <button onclick="toggleCollapse(this)" class="collapse-btn">
-                  <i class="bi bi-chevron-up"></i> Collapse
-                </button>
-              </div>
-            <div class="grid">
-            <div><label>Dzongkhag:</label><input type="text" value="dzongkhag" /></div>
-            <div><label>Gewog:</label><input type="text" value="gewog" /></div>
-            <div><label>Village:</label><input type="text" value="village" /></div>
-            </div>
-        </div>
+        
         
         <!-- Father's Details -->
         <div class="card">
@@ -136,7 +79,6 @@
             <div class="grid">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
-            <div><label>Nationality:</label><input type="text" value="nationality" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>
             <div><label>House No:</label><input type="text" value="house no" /></div>
             <div><label>Thram No:</label><input type="text" value="thram no" /></div>
@@ -157,7 +99,6 @@
             <div class="grid">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
-            <div><label>Nationality:</label><input type="text" value="nationality" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>
             <div><label>House No:</label><input type="text" value="house no" /></div>
             <div><label>Thram No:</label><input type="text" value="thram no" /></div>
@@ -178,7 +119,6 @@
             <div class="grid">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
-            <div><label>Nationality:</label><input type="text" value="nationality" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>
             <div><label>House No:</label><input type="text" value="house no" /></div>
             <div><label>Thram No:</label><input type="text" value="thram no" /></div>
@@ -250,6 +190,40 @@
         element.removeEventListener('transitionend', handler);
       });
     }
+  </script>
+  <!-- For image & PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="script/viewmore.js"></script>
+
+  <script>
+    // Export as PDF
+    document.querySelector('.bi-download').parentElement.onclick = async () => {
+      const container = document.querySelector('.content-container');
+      const canvas = await html2canvas(container, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = 210;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+  
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("citizen-profile.pdf");
+    };
+  
+    // Save as Image
+    document.querySelector('.bi-save').parentElement.onclick = async () => {
+      const container = document.querySelector('.content-container');
+      const canvas = await html2canvas(container, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      const link = document.createElement("a");
+      link.href = imgData;
+      link.download = "citizen-profile.png";
+      link.click();
+    };
   </script>
   
 </body>

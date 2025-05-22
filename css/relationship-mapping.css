@@ -1,55 +1,59 @@
-/* Inherit sidebar styles from Analysis.css */
+/* Inherit sidebar & global styles */
 @import url('Analysis.css');
 
-/* ————————————————  
-   LAYOUT & HEADER  
-   ———————————————— */
+
+/* ————— Layout & Header ————— */
+.relationship-container {
+  display: flex;
+}
 .main-content {
-  margin-left: 14vw;
   width: calc(100% - 14vw);
-  padding: 2rem;
+  padding: 1rem 0;
+  position: relative;
 }
 .header {
-  margin-left: 2rem;
+  margin-left: 2rem;          /* indent header under sidebar */
 }
 .header h1 {
   color: #636ae8;
   font-size: 40px;
   font-weight: 700;
-  margin-bottom: 0;
+  margin-bottom: 0.5rem;
 }
 .header p {
   color: #979797;
-  margin-top: 0;
   font-size: 14px;
+  margin-top: 0;
 }
 
-/* ————————————————  
-   SEARCH SECTION  
-   ———————————————— */
+/* ————— Search Section ————— */
 .search-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 6rem;
+  align-items: center;    /* center horizontally */
+  justify-content: center;
+  margin: 6rem 0;         /* space above and below */
+  width: 100%;
+  box-sizing: border-box;
 }
-.search-section h2 {
-  margin-bottom: 2rem;
-  font-weight: 500;
+.search-section h2,
+.search-form {
+  margin-left: 0;
 }
 .search-form {
   display: flex;
   gap: 1rem;
-  align-items: center;
+  justify-content: flex-start;
 }
+
+/* Inputs & button styling (unchanged) */
 .input-box {
   width: 360px;
   height: 48px;
   padding: 0 16px;
   border: 1.5px solid #211C83;
   border-radius: 12px;
-  font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font: 14px 'Inter', sans-serif;
   box-sizing: border-box;
 }
 .degree-select {
@@ -66,10 +70,9 @@
   background-position: right 14px center;
   background-size: 16px 16px;
   appearance: none;
-  box-sizing: border-box;
-  text-align: left;
   color: #000;
   cursor: pointer;
+  box-sizing: border-box;
 }
 .degree-select option {
   text-align: center;
@@ -106,20 +109,138 @@
   font-weight: bold;
 }
 
-/* ————————————————  
-   FOOTER  
-   ———————————————— */
+/* ————— Zoom & Export Controls ————— */
+.tree-controls {
+  position: absolute;
+  top: 6.5rem;
+  right: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+.control-btn {
+  background-color: transparent;
+  color: rgb(79, 79, 79);
+  border: 1.5px solid #E9E9E9;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+.control-btn:hover{
+    background-color: #636ae8;
+  color: white;
+}
+
+.control-btn i {
+  font-size: 1.1rem;
+}
+
+/* ————— Family Tree Container ————— */
+#familyTreeContainer {
+  padding-bottom: 3rem;               /* give room for the fixed footer */
+}
+/* ————— Rows of Nodes ————— */
+.tree-children {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  position: relative;
+  margin-top: 1.5rem;
+}
+/* only the parent row gets the full connector */
+.tree-children.top-row::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 1px;
+
+  z-index: 0;
+}
+.tree-children.top-row::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px; height: 1.5rem;
+  background: #ccc;
+  z-index: 0;
+}
+
+/* ————— Individual Nodes ————— */
+.tree-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+.profile-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #636ae8;
+  margin-bottom: 0.5rem;
+}
+.tree-node strong,
+.tree-node em {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+}
+.tree-node strong {
+  font-size: 13px;
+  text-transform: uppercase;
+}
+.tree-node em {
+  font-size: 11px;
+  color: #666;
+}
+/* highlight the target */
+.tree-node.target .profile-img {
+  border-color: #812dd3;
+  border-width: 4px;
+}
+.tree-node.target em {
+  font-weight: bold;
+  color: #6db3ed;
+}
+/* children get their own stem */
+.tree-node.child::before {
+  content: '';
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px; height: 1.5rem;
+  background: #ccc;
+  z-index: 0;
+}
+
+/* ————— Footer ————— */
 footer {
-  margin-top: 600px;
+  position: fixed;
+  bottom: 0;
+  left: 14vw;                         /* sit just to the right of the sidebar */
+  width: calc(100% - 14vw);
+  background: #fff;                   /* match page background */
+  padding: 0.75rem 0;
   font-size: 12px;
   text-align: center;
   color: #aaa;
   font-family: 'Inter', sans-serif;
+  border-top: 1px solid #e0e0e0;      /* optional separator */
+  z-index: 10;
 }
 
-/* ————————————————  
-   RESPONSIVE  
-   ———————————————— */
+/* ————— Responsive ————— */
 @media (max-width: 1024px) {
   .search-form {
     flex-direction: column;
@@ -134,22 +255,13 @@ footer {
   .relationship-container {
     flex-direction: column;
   }
-  .sidebar-menu {
-    position: relative;
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-  }
+
   .main-content {
     margin-left: 0;
     width: 100%;
     padding: 1rem;
   }
-  .sidebar-menu .sidebar-footer {
-    display: none;
-  }
+
   .search-section {
     margin-top: 2rem;
   }
@@ -167,125 +279,53 @@ footer {
     display: inline;
   }
 }
-
-/* ————————————————  
-   FAMILY‐TREE LAYOUT  
-   ———————————————— */
-.tree-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 2rem;
-  position: relative;
-}
-.tree-children {
+.spinner-wrapper {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  gap: 4rem;
-  margin-top: 2rem;
-  position: relative;
+  align-items: center;
+  height: 300px;
 }
 
-/* ─ Top‐row parents (Target ↔ Spouse / siblings+couple for 2nd degree) */
-.tree-children.top-row {
-  position: relative;
-}
-.tree-children.top-row::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #ccc;
-  z-index: 0;
-}
-.tree-children.top-row .tree-node {
-  z-index: 1;
-  background: #fff;
-}
-.tree-children.top-row::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 1.5rem;
-  background: #ccc;
-  z-index: 0;
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 8px solid #dedede;
+  border-top: 8px solid #636ae8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-/* ─ Other rows (children, siblings, etc.) */
-.tree-children:not(.top-row)::before {
-  content: "";
+@keyframes spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.connector-layer {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  height: 1px;
-  background: #ccc;
+  pointer-events: none;
   z-index: 0;
 }
-.tree-children:not(.top-row) .tree-node::before {
-  content: "";
-  position: absolute;
-  top: -1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 1.5rem;
-  background: #ccc;
-  z-index: 0;
-}
-
-/* node container */
 .tree-node {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
-
-/* circular avatar */
-.profile-img {
-  width: 80px;
-  height: 80px;
+.tree-node:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(101, 89, 255, 0.3);
+}
+.loading-spinner-inline {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ccc;
+  border-top-color: #6559ff;
   border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #636ae8;
-  margin-bottom: 0.5rem;
+  animation: spin 0.6s linear infinite;
+  margin-left: 5px;
+  vertical-align: middle;
 }
 
-/* text under avatar */
-.tree-node strong,
-.tree-node em {
-  display: block;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-  color: #333;
-}
-.tree-node strong {
-  font-size: 14px;
-  text-transform: uppercase;
-  margin-bottom: 0.25rem;
-}
-.tree-node em {
-  font-style: normal;
-  font-size: 12px;
-  color: #666;
-}
-
-/* ─ Highlight Target node ─ */
-.tree-node.target .profile-img {
-  border-color: #812dd38a;
-  border-width: 4px;
-}
-.tree-node.target strong {
-  color: black;
-}
-.tree-node.target em {
-  font-weight: bold;
-  color: #6db3ed;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

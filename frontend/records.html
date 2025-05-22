@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Citizen Records</title>
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="../css/responsive.css">
   <link rel="stylesheet" href="/css/records.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,34 +39,49 @@
 </head>
 
 <body>
+  <div class="miniScreenContainer">
+  <h1>Please view in a larger device</h1>
+</div>
   <div class="relationship-container">
     <div class="sidebar-menu">
-      <div class="sidebar-header">
-        <div style="display: flex; align-items: center; justify-content: center;">
-          <p style="margin: 0;"><a href="#">ARM Dashboard</a></p>
-          <div class="toggle-btn" onclick="toggleSidebar()" style="cursor: pointer;">
-            <i class="bi bi-list"></i>
-          </div>
-        </div>
-        <hr />
-      </div>
-      <div class="sidebar-nav">
-        <nav>
-          <a href="Dashboard.html"><img src="image/home.png" class="icon" alt="Home" /><span>Dashboard</span></a>
-          <a href="relationship-mapping.html"><img src="image/rm icon.png" class="icon"
-              alt="Relationship Mapping" /><span>Relationship Mapping</span></a>
-          <a href="analysis.html"><img src="image/ai icon.png" class="icon" alt="Analysis" /><span>Analysis</span></a>
-          <a href="records.html"><img src="image/record icon.png" class="icon" alt="Citizen Record" /><span>Citizen
-              Record</span></a>
-          <a href="audit.html"><img src="image/audit icon.png" class="icon" alt="Audit Log" /><span>Audit Log</span></a>
-        </nav>
-      </div>
-      <div class="sidebar-footer">
-        <a href="userprofile.html"><img src="image/profile.jpg" class="user-img" alt="User profile" />
-          <p>Username</p>
-        </a>
-      </div>
+    <div class="sidebar-header">
+
+      <a href="">
+        <p class = "largeTitle">ARM Dashboard</p>
+        <p class = "smallTitle">ARM</p></a>
+      
     </div>
+    <div class="sidebar-nav">
+      <nav>
+        <a href="Dashboard.html">
+          <img src="image/home.png" class="icon" alt="Home" />
+          <span>Dashboard</span>
+        </a>
+        <a href="relationship-mapping.html">
+          <img src="image/rm icon.png" class="icon" alt="Relationship Mapping" />
+          <span>Relationship Mapping</span>
+        </a>
+        <a href="analysis.html">
+          <img src="image/ai icon.png" class="icon" alt="Analysis" />
+          <span>Analysis</span>
+        </a>
+        <a href="records.html" class = "active">
+          <img src="image/record icon.png" class="icon" alt="Citizen Record" />
+          <span>Citizen Record</span>
+        </a>
+        <a href="audit.html">
+          <img src="image/audit icon.png" class="icon" alt="Audit Log" />
+          <span>Audit Log</span>
+        </a>
+      </nav>
+  </div>
+  <div class="sidebar-footer">
+    <a href="userprofile.html">
+      <img src="image/profile.jpg" class="user-img" alt="User profile" />
+      <p>Username</p>
+    </a>
+  </div>
+  </div>
 
     <div class="main-content">
       <h1>Citizen Records</h1>
@@ -91,8 +108,12 @@
             <input type="text" id="household-number" placeholder="Enter household number">
           </div>
           <div class="search-btn-wrapper" style="display: flex; gap: 10px;">
-            <button class="search-btn" id="filter-btn"><i class="fas fa-search"></i></button>
-            <button class="search-btn" id="reset-btn"><i class="fas fa-sync-alt"></i></button>
+            <button class="search-btn" id="filter-btn"><i class="fas fa-search"></i> Search</button>
+            <button class="search-btn" id="reset-btn"><i class="fas fa-sync-alt"></i> Reset</button>
+          </div>
+          <div class="save-btns"> 
+            <button class="img-save"><i class="fas fa-image"></i> Export Image</button>
+            <button class="pdf-save"><i class="fas fa-file-pdf"></i> Export PDF</button>
           </div>
         </div>
       </section>
@@ -335,7 +356,80 @@
   
     window.onload = fetchAllCitizens;
   </script>
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Export table as PNG image
+document.querySelector(".pdf-save").addEventListener("click", async () => {
+  buildFullDataTable(); // Your function to fill the full-data-table
+  const table = document.getElementById("full-data-table");
+  table.style.display = "table"; // Make it visible temporarily
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l', 'mm', 'a4');
+
+  // Convert table to canvas with scale for higher clarity
+  const canvas = await html2canvas(table, { scale: 3 });
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdfWidth = doc.internal.pageSize.getWidth();
+  const pdfHeight = doc.internal.pageSize.getHeight();
+
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+
+  const imgProps = doc.getImageProperties(imgData);
+  const imgRatio = imgProps.width / imgProps.height;
+
+  const pdfImgWidth = pdfWidth;
+  const pdfImgHeight = pdfImgWidth / imgRatio;
+
+  let heightLeft = pdfImgHeight;
+  let position = 0;
+
+  // Loop to slice canvas and add to PDF page by page
+  while (position < canvasHeight) {
+    const pageCanvas = document.createElement("canvas");
+    const pageHeight = Math.min(canvasHeight - position, canvasHeight * (pdfHeight / pdfImgHeight));
+
+    pageCanvas.width = canvasWidth;
+    pageCanvas.height = pageHeight;
+
+    const pageCtx = pageCanvas.getContext("2d");
+    pageCtx.drawImage(canvas, 0, position, canvasWidth, pageHeight, 0, 0, canvasWidth, pageHeight);
+
+    const pageImgData = pageCanvas.toDataURL("image/png");
+    doc.addImage(pageImgData, 'PNG', 0, 0, pdfWidth, (pageHeight / canvasWidth) * pdfWidth);
+
+    position += pageHeight;
+    if (position < canvasHeight) doc.addPage();
+  }
+
+  table.style.display = "none"; // Re-hide the table
+  doc.save("citizen-records-full.pdf");
+});
+
+
+  // Export table as PDF
+  document.querySelector(".pdf-save").addEventListener("click", async () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+
+    const table = document.querySelector("table");
+    const canvas = await html2canvas(table);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const imgProps = doc.getImageProperties(imgData);
+    const pdfWidth = pageWidth - 20;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    doc.addImage(imgData, 'PNG', 10, 10, pdfWidth, pdfHeight);
+    doc.save("citizen-records.pdf");
+  });
+</script>
+
   
   
 

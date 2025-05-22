@@ -1,128 +1,61 @@
 .relationship-container {
     display: flex;
-    height: 100%;
-    font-family: Inter, Arial, sans-serif;
+    flex-wrap: wrap;
+    /* height: 100%; */
+    font-family: 'Inter', Arial, sans-serif;
   }
   
-  .sidebar-menu {
-    position: fixed;
-    width: 14vw;
-    height: 92%;
-    background-color: #ffffff;
-    border: 1.5px solid #ddd;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
-    transition: width 0.3s ease-in-out;
-  }
-  
-  .sidebar-menu .sidebar-header {
-    text-align: center;
-    font-size: 24px;
-  }
-  
-  .sidebar-menu .sidebar-header p a {
-    text-decoration: none;
-    padding-right: 10px;
-    color: black;
-  }
-  
-  .sidebar-nav {
-    margin-top: -30vh;
-  }
-  
-  .sidebar-nav nav {
-    justify-self: center;
-  }
-  
-  .sidebar-nav nav a {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    margin: 10px;
-    text-decoration: none;
-    color: black;
-    padding: 12px 15px;
-    border-radius: 5px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-  }
-  
-  .sidebar-nav nav a:hover {
-    background-color: rgb(230, 220, 239);
-    color: black;
-  }
-  
-  .active {
-    background-color: rgb(230, 220, 239);
-    color: black;
-  }
-  
-  .sidebar-nav nav a .icon {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-  }
-  
-  .sidebar-menu .sidebar-footer{
-    display: inline-flex;
-    justify-content: center;
-  }
-  .sidebar-menu .sidebar-footer a{
-    display: inline-flex;
-    justify-content: center;
-    text-decoration: none;
-    color: black;
-  }
-  .sidebar-menu .sidebar-footer .user-img {
-    width: 50px;
-    /* height: 55px; */
-    border-radius: 50px;
-    margin-right: 2px;
-  }
-
   
   .main-content {
-    margin-left: 17vw;
-    margin-right: 5vw;
-    background-color: #f5f7fb;
-    padding: 40px;
+    /* margin-right: 5vw; */
+    background-color: #fff;
+    padding: 1rem 2rem;
     transition: all 0.3s ease-in-out;
     font-family: Inter, Arial, sans-serif;
 }
 
 /* Section title */
 .main-content h1 {
-    color: #2d2b90;
-    font-size: 28px;
+    color: #636ae8;
+    font-size: 40px;
     margin-bottom: 20px;
 }
 
 /* Tabs */
+/* Tabs Container */
 .tabs {
-    display: flex;
-    background-color: #e6e3fd;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 20px;
+  display: flex;
+  background-color: #e6e3fd;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 6px;
+  justify-content: center;
 }
 
+/* Each Tab Button */
 .tab-btn {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background 0.3s ease;
+  flex: 1;
+  text-align: center;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease, color 0.3s ease;
+  border-radius: 10px;
+  color: #555;
 }
 
+/* Active Tab Styling */
 .tab-btn.active {
-    background-color: #bcaeff;
-    font-weight: bold;
+  background-color: #ffffff;
+  color: #000;
+  font-weight: 600;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
 }
+
 
 /* Tab sections */
 .tab-section {
@@ -154,19 +87,30 @@
 }
 
 .search-group input {
-    flex: 1;
+    /* flex: 1; */
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    width: 50%;
+    width: 300px;
 }
 
 .search-group button {
-    background-color: #c7bcf9;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
+  background-color: transparent;
+  color:rgb(79, 79, 79);
+  border: 1.5px solid #E9E9E9;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.search-group button:hover{
+ background-color: #636ae8;
+  color: white;
 }
 
 /* Table */
@@ -177,15 +121,17 @@ table {
 }
 
 thead {
-    background-color: #ede9ff;
+    background-color: #e7e7f5;
 }
 
 thead th {
     text-align: left;
     padding: 12px;
+    font-size: 14px;
 }
 
 tbody td {
+    font-size: 12px;
     padding: 12px;
     border-bottom: 1px solid #eee;
 }

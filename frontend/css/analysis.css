@@ -4,95 +4,14 @@
   font-family: Inter, Arial, sans-serif;
 }
 
-.sidebar-menu {
-  position: fixed;
-  width: 14vw;
-  height: 95%;
-  background-color: #ffffff;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  transition: width 0.3s ease-in-out;
-}
-
-.sidebar-menu .sidebar-header {
-  text-align: center;
-  font-size: 24px;
-}
-
-.sidebar-menu .sidebar-header p a {
-  text-decoration: none;
-  padding-right: 10px;
-  color: black;
-}
-
-.sidebar-nav {
-  margin-top: -30vh;
-}
-
-.sidebar-nav nav {
-  justify-self: center;
-}
-
-.sidebar-nav nav a {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin: 10px;
-  text-decoration: none;
-  color: black;
-  padding: 12px 15px;
-  border-radius: 5px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.sidebar-nav nav a:hover {
-  background-color: rgb(230, 220, 239);
-  color: black;
-}
-
-.active {
-  background-color: rgb(230, 220, 239);
-  color: black;
-}
-
-.sidebar-nav nav a .icon {
-  width: 15px;
-  height: 15px;
-  object-fit: contain;
-}
-
-.sidebar-menu .sidebar-footer{
-  display: inline-flex;
-  justify-content: center;
-}
-.sidebar-menu .sidebar-footer a{
-  display: inline-flex;
-  justify-content: center;
-  text-decoration: none;
-  color: black;
-}
-.sidebar-menu .sidebar-footer .user-img {
-  width: 50px;
-  /* height: 55px; */
-  border-radius: 50px;
-  margin-right: 20px;
-}
-
-
 .main-content {
-  margin-left: 14vw;
   width: calc(100% - 14vw);
   background-color: #fff;
   transition: all 0.3s ease-in-out;
 }
 
 .content-header {
-  margin: 2.5rem 0 0 4rem;
+  margin: 1rem 2rem;
 }
 
 .content-header h1 {
@@ -138,7 +57,7 @@ input::placeholder {
   border: 1px solid #211C83;
   border-radius: 14px;
   padding: 12px 20px;
-  width: 360px;
+  /* width: 360px; */
   height: 35px;
 }
 
