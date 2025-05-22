@@ -6,7 +6,6 @@
   <link rel="stylesheet" href="/css/login.css" />
   <title>Login</title>
   <style>
-    /* Popup overlay */
     .popup {
       display: none;
       position: fixed;
@@ -36,6 +35,11 @@
       margin: 0;
     }
 
+    #popup-icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
     #error-msg {
       color: red;
       font-size: 14px;
@@ -43,8 +47,8 @@
       margin-top: 10px;
     }
   </style>
-
 </head>
+
 <body>
   <div class="container">
     <div class="login-wrapper">
@@ -60,13 +64,8 @@
       </div>
     </div>
   </div>
-  <!-- Popup modal -->
-  <div id="popup" class="popup">
-    <div class="popup-content">
-      <h3>Login Successful!</h3>
-    </div>
-  </div>
-  <!-- Dynamic Popup Modal -->
+
+  <!-- Popup -->
   <div id="popup" class="popup">
     <div class="popup-content">
       <div id="popup-icon" class="popup-icon">✔</div>
@@ -79,26 +78,35 @@
     const loginForm = document.getElementById("loginForm");
     const errorMsg = document.getElementById("error-msg");
     const popup = document.getElementById("popup");
-
     const popupMessage = document.getElementById("popup-message");
     const popupIcon = document.getElementById("popup-icon");
 
-    const predefinedUser = {
-      username:"admin",
-      email: "admin@example.com",
-      password: "admin123",
-      contact:"+975 17123456",
-      department:"Investigation Berue"
-    };
+    // List of valid users
+    const predefinedUsers = [
+      {
+        username: "admin",
+        email: "admin@example.com",
+        password: "admin123",
+        contact: "+975 17123456",
+        department: "Investigation Berue"
+      },
+      {
+        username: "tandin",
+        email: "tandin@example.com",
+        password: "tandin123",
+        contact: "+975 17998800",
+        department: "Intelligence Unit"
+      }
+    ];
 
     loginForm.addEventListener("submit", function (e) {
       e.preventDefault();
 
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
-
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+      // Input validation
       if (!email || !password) {
         errorMsg.textContent = "All fields are required.";
         errorMsg.style.display = "block";
@@ -113,34 +121,32 @@
 
       errorMsg.style.display = "none";
 
-      // Show popup
-      popup.style.display = "block";
+      // Match user
+      const matchedUser = predefinedUsers.find(
+        user => user.email === email && user.password === password
+      );
 
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        window.location.href = "analysis.html"; // Change this to your target page
-      }, 2000);
-
-      if (email === predefinedUser.email && password === predefinedUser.password) {
-        // Store user data
-        localStorage.setItem("user", JSON.stringify(predefinedUser));
+      if (matchedUser) {
+        // Save user info
+        localStorage.setItem("user", JSON.stringify(matchedUser));
 
         // Show success popup
         popupMessage.textContent = "Login Successful!";
         popupIcon.textContent = "✔";
+        popupIcon.style.color = "green";
         popup.classList.remove("error");
         popup.classList.add("success");
         popup.style.display = "block";
 
-      setTimeout(() => {
-        popup.style.display = "none";
-        window.location.href = "userprofile.html"; // Redirect to profile page
+        setTimeout(() => {
+          popup.style.display = "none";
+          window.location.href = "userprofile.html";
         }, 2000);
-    }
-      else {
-        // Error
+      } else {
+        // Show error
         popupMessage.textContent = "Invalid email or password!";
         popupIcon.textContent = "✖";
+        popupIcon.style.color = "red";
         popup.classList.remove("success");
         popup.classList.add("error");
         popup.style.display = "block";
