@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audit Logs</title>
+  <link rel="stylesheet" href="/css/sidebar.css" />
+  <link rel="stylesheet" href="/css/responsive.css" />
+  <link rel="stylesheet" href="/css/audit.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .modal {
+      font-family: 'Inter', sans-serif;
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      float: right;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .online {
+      color: green;
+      font-weight: bold;
+    }
+
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      opacity: 0;
+      position: relative;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast.hide {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-message {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .toast-close:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .toast-progress {
+      height: 3px;
+      background: rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toast-progress::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: currentColor;
+      animation: toast-progress 4s linear forwards;
+    }
+
+    @keyframes toast-progress {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    /* Toast Types */
+    .toast-success {
+      border-left: 4px solid #10b981;
+      color: #10b981;
+    }
+
+    .toast-error {
+      border-left: 4px solid #ef4444;
+      color: #ef4444;
+    }
+
+    .toast-warning {
+      border-left: 4px solid #f59e0b;
+      color: #f59e0b;
+    }
+
+    .toast-info {
+      border-left: 4px solid #3b82f6;
+      color: #3b82f6;
+    }
+
+    /* Loading spinner */
+    .loading-row {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4b6cb7;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+
+
+<script>
+(function() {
+  // 1. Clear any stale data and check token immediately
+  const token = localStorage.getItem("token");
+  if (!token) {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace("login.html");
+    return;
+  }
+
+  // 2. Enhanced history manipulation to prevent back navigation
+  function preventBackNavigation() {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+        return;
+      }
+      window.history.pushState(null, "", window.location.href);
+    };
+  }
+  
+  preventBackNavigation();
+
+  // 3. Validate token with server immediately
+  fetch('/api/auth/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Token validation failed');
+    }
+    return res.json();
+  })
+  .then(user => {
+    console.log('Session validated for:', user.email);
+    // Update user info in localStorage if needed
+    localStorage.setItem("user", JSON.stringify(user));
+  })
+  .catch(error => {
+    console.error('Token validation failed:', error);
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace('login.html');
+  });
+
+  // 4. Listen for logout in other tabs/windows
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'token' && !e.newValue) {
+      // Token was removed in another tab - logout this tab too
+      window.location.replace('login.html');
+    }
+  });
+
+  // 5. Periodic token validation (every 5 minutes)
+  setInterval(() => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) {
+      window.location.replace("login.html");
+      return;
+    }
+    
+    // Validate token with server
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + currentToken }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Token expired or invalid');
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace('login.html');
+    });
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // 6. Handle page visibility changes (when user returns to tab)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+      }
+    }
+  });
+
+})();
+</script>
+
+<body>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+      throw new Error('Not authenticated');
+    }
+
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(user => {
+        document.getElementById('sidebarUsername').textContent = user.username;
+        document.getElementById('sidebarProfilePic').src = user.profilePic;
+      })
+      .catch(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+  </script>
+
+  <div class="miniScreenContainer">
+    <h1>Please view in a larger device</h1>
+  </div>
+
+  <div class="relationship-container">
+    <div class="sidebar-menu">
+      <div class="sidebar-header">
+        <a href="#">
+          <p class="largeTitle">ARM Dashboard</p>
+          <p class="smallTitle">ARM</p>
+        </a>
+      </div>
+
+      <div class="sidebar-nav">
+        <nav>
+          <a href="Dashboard.html"><img src="image/home.png" class="icon" /><span>Dashboard</span></a>
+          <a href="relationship-mapping.html"><img src="image/rm icon.png" class="icon" /><span>Relationship
+              Mapping</span></a>
+          <a href="analysis.html"><img src="image/ai icon.png" class="icon" /><span>Analysis</span></a>
+          <a href="records.html"><img src="image/record icon.png" class="icon" /><span>Citizen Record</span></a>
+          <a href="audit.html" class="active"><img src="image/audit icon.png" class="icon" /><span>Audit Log</span></a>
+          <button id="logoutBtn" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>&nbsp; <span>Logout</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="userprofile.html">
+          <img id="sidebarProfilePic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-img"
+            alt="User profile" />
+          <p id="sidebarUsername">Username</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <h1>Audit Logs</h1>
+
+    <div class="tabs">
+      <!-- <p class="tab-btn " id="userLogTab">User Log</p> -->
+      <!-- <button class="tab-btn" onclick="showTab('saved-records')" id="savedRecordsTab">Saved Records</button> -->
+    </div>
+
+    <section id="user-log" class="tab-section">
+      <div class="card">
+        <h2>Filter Users</h2>
+        <p>Filter users by their email</p>
+        <div class="search-group">
+          <input type="text" placeholder="Search user by email" id="search-input" />
+          <button class="search-btn" id="filter-btn"><i class="fas fa-search"></i> Search</button>
+          <button class="search-btn" id="reset-btn"><i class="fas fa-sync-alt"></i> Reset</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>User Logs</h2>
+        <p>Showing latest logs</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Username</th>
+              <th>Department</th>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="audit-log-body">
+            <!-- Injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <footer>
+      <p>Copyright © 2025 Anti-Corruption Commission of Bhutan. All rights reserved.</p>
+    </footer>
+  </main>
+
+  <!-- Modal -->
+  <div id="viewMoreModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2>User Audit Logs</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Email</th>
+            <th>Action</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody id="modal-log-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Enhanced Logout Handler Script -->
+<!-- Enhanced Logout Handler Script with Confirmation -->
+<script>
+  // Enhanced logout function with confirmation
+  async function handleLogout() {
+    // Show confirmation toast
+    showLogoutConfirmation();
+  }
+
+  function showLogoutConfirmation() {
+    // Create custom confirmation toast
+    const toastContainer = document.getElementById('toast-container');
+    const confirmToast = document.createElement('div');
+    confirmToast.className = 'toast toast-warning';
+    confirmToast.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateX(0);
+      opacity: 1;
+      position: relative;
+      border-left: 4px solid #f59e0b;
+      color: #f59e0b;
+      min-width: 350px;
+    `;
+    
+    confirmToast.innerHTML = `
+      <div style="display: flex; align-items: center; padding: 16px; gap: 12px;">
+        <div style="font-size: 20px; flex-shrink: 0;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; margin-bottom: 8px;">Confirm Logout</div>
+          <div style="font-size: 14px; line-height: 1.4; color: #666;">
+            Are you sure you want to logout? You will need to login again to access the system.
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button onclick="confirmLogout()" style="
+              background: #ef4444; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+              <i class="fas fa-sign-out-alt"></i> Yes, Logout
+            </button>
+            <button onclick="cancelLogout()" style="
+              background: #6b7280; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    toastContainer.appendChild(confirmToast);
+    
+    // Auto-cancel after 10 seconds
+    setTimeout(() => {
+      if (confirmToast.parentElement) {
+        cancelLogout();
+      }
+    }, 10000);
+  }
+
+  async function confirmLogout() {
+  // Remove confirmation toast
+  const confirmToast = document.querySelector('.toast-warning');
+  if (confirmToast) {
+    confirmToast.remove();
+  }
+
+  // Show logout progress
+  const logoutToast = showToast('Logging out...', 'info', 5000);
+  
+  const token = localStorage.getItem('token');
+  
+  try {
+    // Call logout API to log the action
+    if (token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Logout API failed:', error);
+    // Continue with logout even if API fails
+  }
+
+  // Always clear all storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Clear any browser cache if possible
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => caches.delete(name));
+    });
+  }
+
+  removeToast(logoutToast);
+  showToast('Logout successful. Redirecting...', 'success', 1500);
+  
+  // Force redirect with replace to prevent back navigation
+  setTimeout(() => {
+    // Clear history and redirect
+    window.history.replaceState(null, "", "login.html");
+    window.location.replace('login.html');
+  }, 1000);
+}
+
+  function cancelLogout() {
+    // Remove confirmation toast
+    const confirmToast = document.querySelector('.toast-warning');
+    if (confirmToast) {
+      confirmToast.remove();
+    }
+    showToast('Logout cancelled', 'info', 2000);
+  }
+
+  // Alternative: Simple browser confirm (uncomment if you prefer this approach)
+  /*
+  async function handleLogoutSimple() {
+    if (confirm('Are you sure you want to logout?')) {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            }
+          });
+          console.log('Logout logged successfully');
+        } catch (error) {
+          console.error('Failed to log logout:', error);
+        }
+      }
+      
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+  */
+
+  // Attach logout handler
+  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+  // Handle browser close/refresh to log logout (no confirmation needed for this)
+  window.addEventListener('beforeunload', async (e) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Use sendBeacon for reliable logout logging on page unload
+        const data = JSON.stringify({});
+        navigator.sendBeacon('/api/auth/logout', new Blob([data], {
+          type: 'application/json'
+        }));
+      } catch (error) {
+        console.error('Failed to log logout on page unload:', error);
+      }
+    }
+  });
+
+  // Keyboard shortcut for logout (Ctrl+Shift+L) with confirmation
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+      e.preventDefault();
+      handleLogout();
+    }
+  });
+</script>
+
+  <!-- Toast Notification System -->
+  <script>
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 4000) {
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      
+      const icon = getToastIcon(type);
+      toast.innerHTML = `
+        <div class="toast-content">
+          <div class="toast-icon">${icon}</div>
+          <div class="toast-message">${message}</div>
+          <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">&times;</button>
+        </div>
+        <div class="toast-progress"></div>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      // Trigger animation
+      setTimeout(() => toast.classList.add('show'), 100);
+      
+      // Auto remove
+      setTimeout(() => removeToast(toast), duration);
+      
+      return toast;
+    }
+
+    function getToastIcon(type) {
+      const icons = {
+        success: '<i class="fas fa-check-circle"></i>',
+        error: '<i class="fas fa-exclamation-circle"></i>',
+        warning: '<i class="fas fa-exclamation-triangle"></i>',
+        info: '<i class="fas fa-info-circle"></i>'
+      };
+      return icons[type] || icons.info;
+    }
+
+    function removeToast(toast) {
+      toast.classList.add('hide');
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.parentElement.removeChild(toast);
+        }
+      }, 300);
+    }
+
+    function showLoadingSpinner() {
+      const tbody = document.getElementById("audit-log-body");
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="6"><div class="spinner"></div><p style="margin-top: 10px;">Loading audit logs...</p></td></tr>`;
+    }
+  </script>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-section').forEach(tab => tab.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId + 'Tab').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById("viewMoreModal").classList.remove("show");
+      showToast('Modal closed', 'info', 2000);
+    }
+
+    // Enhanced reset functionality
+    document.getElementById('reset-btn').addEventListener('click', function () {
+      showToast('Resetting filters and reloading audit logs...', 'info', 3000);
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // Show loading state
+      showLoadingSpinner();
+      showToast('Loading audit logs...', 'info', 3000);
+
+      // Fetch all audit logs on initial page load
+      fetch("/api/audit", {
+        headers: { "Authorization": "Bearer " + token }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          const tbody = document.getElementById("audit-log-body");
+          tbody.innerHTML = ""; // Clear the table before adding new data
+
+          const latestByEmail = new Map();
+          data.forEach(entry => {
+            if (!latestByEmail.has(entry.email)) {
+              latestByEmail.set(entry.email, entry);
+            }
+          });
+
+          fetch("/api/auth/me", {
+            headers: { "Authorization": "Bearer " + token }
+          })
+            .then(res => res.json())
+            .then(currentUser => {
+              const currentEmail = currentUser.email;
+
+              if (latestByEmail.size === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: #666;'>No audit logs found.</td></tr>";
+                showToast('No audit logs found in the system.', 'warning');
+                return;
+              }
+
+              // Render all logs initially
+              for (let [email, entry] of latestByEmail) {
+                const isOnline = email === currentEmail;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td>${entry.email}</td>
+                  <td>${entry.username || "-"}</td>
+                  <td>${entry.department || "-"}</td>
+                  <td>${new Date(entry.timestamp).toLocaleString()}</td>
+                  <td><a href="#" class="view-more" data-email="${entry.email}">View More</a></td>
+                  <td class="${isOnline ? "online" : ""}">${isOnline ? "Online" : "Offline"}</td>
+                `;
+                tbody.appendChild(tr);
+              }
+
+              showToast(`Successfully loaded ${latestByEmail.size} user audit logs`, 'success');
+
+              // Attach view more functionality
+              attachViewMoreListeners();
+            });
+        })
+        .catch(err => {
+          console.error("Failed to load audit logs:", err);
+          const tbody = document.getElementById("audit-log-body");
+          tbody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: #e53e3e;'>Failed to load audit logs. Please refresh the page.</td></tr>";
+          showToast('Failed to load audit logs. Please check your connection and try again.', 'error');
+        });
+
+      // Enhanced filter functionality
+      document.getElementById("filter-btn").addEventListener("click", function () {
+        const email = document.getElementById("search-input").value.trim();
+
+        if (!email) {
+          showToast('Please enter an email address to search.', 'warning');
+          return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          showToast('Please enter a valid email address format.', 'error');
+          return;
+        }
+
+        showLoadingSpinner();
+        showToast(`Searching for logs with email: ${email}...`, 'info', 5000);
+
+        // Fetch the filtered logs based on the search email
+        fetch(`/api/audit?email=${encodeURIComponent(email)}`, {
+          headers: { "Authorization": "Bearer " + token }
+        })
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            const tbody = document.getElementById("audit-log-body");
+            tbody.innerHTML = ""; // Clear the table before adding the new filtered data
+
+            if (data.length > 0) {
+              // Render only the matching user(s)
+              fetch('/api/auth/me', {
+                headers: { "Authorization": "Bearer " + token }
+              })
+                .then(res => res.json())
+                .then(currentUser => {
+                  const currentEmail = currentUser.email;
+
+                  data.forEach(entry => {
+                    const isOnline = entry.email === currentEmail;
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                      <td>${entry.email}</td>
+                      <td>${entry.username || "-"}</td>
+                      <td>${entry.department || "-"}</td>
+                      <td>${new Date(entry.timestamp).toLocaleString()}</td>
+                      <td><a href="#" class="view-more" data-email="${entry.email}">View More</a></td>
+                      <td class="${isOnline ? "online" : ""}">${isOnline ? "Online" : "Offline"}</td>
+                    `;
+                    tbody.appendChild(tr);
+                  });
+
+                  showToast(`Found ${data.length} log entries for ${email}`, 'success');
+                  attachViewMoreListeners();
+                });
+            } else {
+              // Show a message if no logs are found for the searched email
+              tbody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: #666;'>No logs found for this email address.</td></tr>";
+              showToast(`No audit logs found for email: ${email}`, 'warning');
+            }
+          })
+          .catch(err => {
+            console.error("Error fetching filtered logs:", err);
+            const tbody = document.getElementById("audit-log-body");
+            tbody.innerHTML = "<tr><td colspan='6' style='text-align: center; color: #e53e3e;'>Failed to search logs. Please try again.</td></tr>";
+            showToast('Failed to search audit logs. Please check your connection and try again.', 'error');
+          });
+      });
+
+      // Allow Enter key to trigger search
+      document.getElementById("search-input").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+          document.getElementById("filter-btn").click();
+        }
+      });
+    });
+
+    function attachViewMoreListeners() {
+      document.querySelectorAll(".view-more").forEach(link => {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          const email = link.getAttribute("data-email");
+          
+          showToast(`Loading detailed logs for ${email}...`, 'info', 3000);
+
+          fetch(`/api/audit/user/${encodeURIComponent(email)}`, {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+          })
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+              }
+              return res.json();
+            })
+            .then(logs => {
+              const modalBody = document.getElementById("modal-log-body");
+              modalBody.innerHTML = "";
+              
+              if (logs.length === 0) {
+                modalBody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #666;'>No detailed logs found for this user.</td></tr>";
+                showToast('No detailed logs found for this user.', 'warning');
+              } else {
+                logs.forEach(log => {
+                  const tr = document.createElement("tr");
+                  tr.innerHTML = `
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${log.email}</td>
+                    <td>${log.action}</td>
+                    <td>${log.detail || "-"}</td>
+                  `;
+                  modalBody.appendChild(tr);
+                });
+                showToast(`Loaded ${logs.length} detailed log entries for ${email}`, 'success');
+              }
+              
+              document.getElementById("viewMoreModal").classList.add("show");
+            })
+            .catch(err => {
+              console.error("Error fetching user logs:", err);
+              showToast('Failed to load detailed logs. Please try again.', 'error');
+            });
+        });
+      });
+    }
+  </script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // Fetch saved records and display them
+      fetch('/api/saved-records', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(savedRecords => {
+          const tbody = document.getElementById('saved-records-body');
+          if (tbody) {
+            tbody.innerHTML = '';
+
+            if (savedRecords.length === 0) {
+              tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #666;'>No saved records found.</td></tr>";
+              return;
+            }
+
+            savedRecords.forEach(record => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${record.cid}</td>
+                <td>${record.savedBy}</td>
+                <td>${new Date(record.savedAt).toLocaleString()}</td>
+                <td><a href="#" class="view-more" data-cid="${record.cid}">View More</a></td>
+              `;
+              tbody.appendChild(tr);
+            });
+
+            document.querySelectorAll('.view-more').forEach(link => {
+              link.addEventListener('click', e => {
+                e.preventDefault();
+                const cid = link.getAttribute('data-cid');
+                showToast(`Redirecting to view record for CID: ${cid}`, 'info');
+                setTimeout(() => {
+                  window.location.href = `/view-record.html?cid=${cid}`;
+                }, 1000);
+              });
+            });
+
+            showToast(`Loaded ${savedRecords.length} saved records`, 'success');
+          }
+        })
+        .catch(err => {
+          console.error('Error loading saved records:', err);
+          showToast('Failed to load saved records.', 'error');
+        });
+    });
+  </script>
+
+</body>
+
+</html>

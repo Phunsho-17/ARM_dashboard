@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <link rel="stylesheet" href="/css/userprofile.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<script>
+(function() {
+  // 1. Clear any stale data and check token immediately
+  const token = localStorage.getItem("token");
+  if (!token) {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace("login.html");
+    return;
+  }
+
+  // 2. Enhanced history manipulation to prevent back navigation
+  function preventBackNavigation() {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+        return;
+      }
+      window.history.pushState(null, "", window.location.href);
+    };
+  }
+  
+  preventBackNavigation();
+
+  // 3. Validate token with server immediately
+  fetch('/api/auth/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Token validation failed');
+    }
+    return res.json();
+  })
+  .then(user => {
+    console.log('Session validated for:', user.email);
+    // Update user info in localStorage if needed
+    localStorage.setItem("user", JSON.stringify(user));
+  })
+  .catch(error => {
+    console.error('Token validation failed:', error);
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace('login.html');
+  });
+
+  // 4. Listen for logout in other tabs/windows
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'token' && !e.newValue) {
+      // Token was removed in another tab - logout this tab too
+      window.location.replace('login.html');
+    }
+  });
+
+  // 5. Periodic token validation (every 5 minutes)
+  setInterval(() => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) {
+      window.location.replace("login.html");
+      return;
+    }
+    
+    // Validate token with server
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + currentToken }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Token expired or invalid');
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace('login.html');
+    });
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // 6. Handle page visibility changes (when user returns to tab)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+      }
+    }
+  });
+
+})();
+</script>
+
+<body>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Confirm Changes</h3>
+      <span class="close-modal" onclick="closeConfirmModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to save these changes?</p>
+      <div id="changes-summary"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmSave()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Protect page and load user -->
+<script>
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html';
+    throw new Error('Not authenticated');
+  }
+
+  fetch('/api/auth/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+    .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+    .then(user => {
+      document.getElementById('sidebarUsername').textContent = user.username;
+      document.getElementById('sidebarProfilePic').src = user.profilePic;
+      document.getElementById('fullName').value = user.username;
+      document.getElementById('email').value = user.email;
+      document.getElementById('phone').value = user.contact;
+      document.getElementById('department').value = user.department;
+      document.querySelector('.username').textContent = user.username;
+      document.querySelector('.user-email').textContent = user.email;
+      document.querySelector('.profile-pic').src = user.profilePic;
+    })
+    .catch(() => {
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+</script>
+
+<div class="miniScreenContainer">
+  <h1>Please view in a larger device</h1>
+</div>
+
+<div class="relationship-container">
+  <div class="sidebar-menu">
+    <div class="sidebar-header">
+      <a href="">
+        <p class="largeTitle">ARM Dashboard</p>
+        <p class="smallTitle">ARM</p>
+      </a>
+    </div>
+    <div class="sidebar-nav">
+      <nav>
+        <a href="Dashboard.html"><img src="image/home.png" class="icon" /><span>Dashboard</span></a>
+        <a href="relationship-mapping.html"><img src="image/rm icon.png" class="icon" /><span>Relationship Mapping</span></a>
+        <a href="analysis.html"><img src="image/ai icon.png" class="icon" /><span>Analysis</span></a>
+        <a href="records.html"><img src="image/record icon.png" class="icon" /><span>Citizen Record</span></a>
+        <a href="audit.html"><img src="image/audit icon.png" class="icon" /><span>Audit Log</span></a>
+        <button id="logoutBtn" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i>&nbsp; <span>Logout</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="userprofile.html">
+        <img id="sidebarProfilePic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-img" />
+        <p id="sidebarUsername">Username</p>
+      </a>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="container">
+      <h1>User Profile</h1>
+      <div class="profile-section">
+
+        <!-- Personal Information -->
+        <div class="personal-info">
+          <div class="header">
+            <div>
+              <h2>Personal Information</h2>
+              <p>Update your personal information</p>
+            </div>
+            <button class="edit-btn" id="editSaveBtn"><i class="bi bi-pencil"></i> Edit</button>
+          </div>
+
+          <form id="profileForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="fullName" disabled />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" disabled />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="phone" disabled />
+              </div>
+              <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="department" disabled />
+              </div>
+            </div>
+
+            <!-- Password Change Section (Hidden by default) -->
+            <div id="passwordSection" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+              <h3 style="margin-bottom: 15px; color: #636ae8;">Change Password (Optional)</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Current Password</label>
+                  <input type="password" id="currentPassword" placeholder="Enter current password" />
+                </div>
+                <div class="form-group">
+                  <label>New Password</label>
+                  <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Confirm New Password</label>
+                  <input type="password" id="confirmPassword" placeholder="Confirm new password" />
+                </div>
+                <div class="form-group">
+                  <!-- Empty div for spacing -->
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Profile Preview -->
+        <div class="profile-preview">
+          <h3>How your profile looks in public</h3>
+          <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Profile" class="profile-pic" />
+          <p class="username">Username</p>
+          <p class="user-email">Username@gmail.com</p>
+          <div class="btn-group">
+            <button class="upload-btn">Upload Photo</button>
+            <button class="remove-btn">Remove photo</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Script -->
+<script src="/script/sidebar.js"></script>
+
+<!-- Logout Handler Script -->
+<!-- Enhanced Logout Handler Script with Confirmation -->
+<script>
+  // Enhanced logout function with confirmation
+  async function handleLogout() {
+    // Show confirmation toast
+    showLogoutConfirmation();
+  }
+
+  function showLogoutConfirmation() {
+    // Create custom confirmation toast
+    const toastContainer = document.getElementById('toast-container');
+    const confirmToast = document.createElement('div');
+    confirmToast.className = 'toast toast-warning';
+    confirmToast.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateX(0);
+      opacity: 1;
+      position: relative;
+      border-left: 4px solid #f59e0b;
+      color: #f59e0b;
+      min-width: 350px;
+    `;
+    
+    confirmToast.innerHTML = `
+      <div style="display: flex; align-items: center; padding: 16px; gap: 12px;">
+        <div style="font-size: 20px; flex-shrink: 0;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; margin-bottom: 8px;">Confirm Logout</div>
+          <div style="font-size: 14px; line-height: 1.4; color: #666;">
+            Are you sure you want to logout? You will need to login again to access the system.
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button onclick="confirmLogout()" style="
+              background: #ef4444; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+              <i class="fas fa-sign-out-alt"></i> Yes, Logout
+            </button>
+            <button onclick="cancelLogout()" style="
+              background: #6b7280; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    toastContainer.appendChild(confirmToast);
+    
+    // Auto-cancel after 10 seconds
+    setTimeout(() => {
+      if (confirmToast.parentElement) {
+        cancelLogout();
+      }
+    }, 10000);
+  }
+
+  async function confirmLogout() {
+  // Remove confirmation toast
+  const confirmToast = document.querySelector('.toast-warning');
+  if (confirmToast) {
+    confirmToast.remove();
+  }
+
+  // Show logout progress
+  const logoutToast = showToast('Logging out...', 'info', 5000);
+  
+  const token = localStorage.getItem('token');
+  
+  try {
+    // Call logout API to log the action
+    if (token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Logout API failed:', error);
+    // Continue with logout even if API fails
+  }
+
+  // Always clear all storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Clear any browser cache if possible
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => caches.delete(name));
+    });
+  }
+
+  removeToast(logoutToast);
+  showToast('Logout successful. Redirecting...', 'success', 1500);
+  
+  // Force redirect with replace to prevent back navigation
+  setTimeout(() => {
+    // Clear history and redirect
+    window.history.replaceState(null, "", "login.html");
+    window.location.replace('login.html');
+  }, 1000);
+}
+
+  function cancelLogout() {
+    // Remove confirmation toast
+    const confirmToast = document.querySelector('.toast-warning');
+    if (confirmToast) {
+      confirmToast.remove();
+    }
+    showToast('Logout cancelled', 'info', 2000);
+  }
+
+  // Alternative: Simple browser confirm (uncomment if you prefer this approach)
+  /*
+  async function handleLogoutSimple() {
+    if (confirm('Are you sure you want to logout?')) {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            }
+          });
+          console.log('Logout logged successfully');
+        } catch (error) {
+          console.error('Failed to log logout:', error);
+        }
+      }
+      
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+  */
+
+  // Attach logout handler
+  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+  // Handle browser close/refresh to log logout (no confirmation needed for this)
+  window.addEventListener('beforeunload', async (e) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Use sendBeacon for reliable logout logging on page unload
+        const data = JSON.stringify({});
+        navigator.sendBeacon('/api/auth/logout', new Blob([data], {
+          type: 'application/json'
+        }));
+      } catch (error) {
+        console.error('Failed to log logout on page unload:', error);
+      }
+    }
+  });
+
+  // Keyboard shortcut for logout (Ctrl+Shift+L) with confirmation
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+      e.preventDefault();
+      handleLogout();
+    }
+  });
+</script>
+
+
+<!-- Toast Notification System -->
+<script>
+  // Toast notification system
+  function showToast(message, type = 'info', duration = 4000) {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = getToastIcon(type);
+    toast.innerHTML = `
+      <div class="toast-content">
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">&times;</button>
+      </div>
+      <div class="toast-progress"></div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Auto remove
+    setTimeout(() => removeToast(toast), duration);
+    
+    return toast;
+  }
+
+  function getToastIcon(type) {
+    const icons = {
+      success: '<i class="fas fa-check-circle"></i>',
+      error: '<i class="fas fa-exclamation-circle"></i>',
+      warning: '<i class="fas fa-exclamation-triangle"></i>',
+      info: '<i class="fas fa-info-circle"></i>'
+    };
+    return icons[type] || icons.info;
+  }
+
+  function removeToast(toast) {
+    toast.classList.add('hide');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+    }, 300);
+  }
+
+  // Confirmation modal functions
+  let pendingAction = null;
+
+  function showConfirmModal(message, changes, action) {
+    document.getElementById('confirmModal').style.display = 'flex';
+    document.querySelector('#confirmModal .modal-body p').textContent = message;
+    document.getElementById('changes-summary').innerHTML = changes;
+    pendingAction = action;
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    pendingAction = null;
+  }
+
+  function confirmSave() {
+    if (pendingAction) {
+      pendingAction();
+    }
+    closeConfirmModal();
+  }
+</script>
+
+<!-- Main Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const uploadBtn = document.querySelector(".upload-btn");
+    const removeBtn = document.querySelector(".remove-btn");
+    const profilePic = document.querySelector(".profile-pic");
+    const sidebarPic = document.getElementById('sidebarProfilePic');
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
+
+    uploadBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      // Show loading toast
+      const loadingToast = showToast('Uploading profile picture...', 'info', 10000);
+
+      const form = new FormData();
+      form.append('profilePic', file);
+      const token = localStorage.getItem('token');
+      
+      try {
+        const res = await fetch('/api/auth/me/picture', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: form
+        });
+
+        removeToast(loadingToast);
+
+        if (!res.ok) {
+          showToast('Failed to upload profile picture. Please try again.', 'error');
+          return;
+        }
+
+        const { profilePic: newPic } = await res.json();
+        profilePic.src = newPic;
+        sidebarPic.src = newPic;
+        
+        showToast('Profile picture updated successfully!', 'success');
+      } catch (error) {
+        removeToast(loadingToast);
+        showToast('Upload failed. Please check your connection and try again.', 'error');
+      }
+    });
+
+    removeBtn.addEventListener("click", async () => {
+      const loadingToast = showToast('Removing profile picture...', 'info', 10000);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/auth/me/picture/remove', {
+          method: 'PUT',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        removeToast(loadingToast);
+
+        if (!res.ok) {
+          showToast('Failed to remove profile picture. Please try again.', 'error');
+          return;
+        }
+
+        const { profilePic: newPic } = await res.json();
+        profilePic.src = newPic;
+        sidebarPic.src = newPic;
+        
+        showToast('Profile picture removed successfully!', 'success');
+      } catch (error) {
+        removeToast(loadingToast);
+        showToast('Failed to remove profile picture. Please try again.', 'error');
+      }
+    });
+
+    const editSaveBtn = document.getElementById("editSaveBtn");
+    const form = document.getElementById("profileForm");
+    const inputs = form.querySelectorAll("input");
+    const passwordSection = document.getElementById("passwordSection");
+    let isEditing = false;
+    let originalData = {};
+
+    editSaveBtn.addEventListener("click", async function (e) {
+      e.preventDefault();
+      
+      if (!isEditing) {
+        // Store original data
+        originalData = {
+          username: document.getElementById('fullName').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          department: document.getElementById('department').value
+        };
+
+        // Enable editing mode
+        inputs.forEach(i => {
+          if (i.id !== 'currentPassword' && i.id !== 'newPassword' && i.id !== 'confirmPassword') {
+            i.disabled = false;
+          }
+        });
+        passwordSection.style.display = 'block';
+        editSaveBtn.innerHTML = '<i class="bi bi-check-circle"></i> Save';
+        isEditing = true;
+        
+        showToast('Edit mode enabled. Make your changes and click Save.', 'info');
+      } else {
+        // Validate and save changes
+        const currentData = {
+          username: document.getElementById('fullName').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          phone: document.getElementById('phone').value.trim(),
+          department: document.getElementById('department').value.trim()
+        };
+
+        const currentPassword = document.getElementById('currentPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+        // Validation
+        if (!currentData.username) {
+          showToast('Full name is required.', 'error');
+          return;
+        }
+
+        if (!currentData.email || !isValidEmail(currentData.email)) {
+          showToast('Please enter a valid email address.', 'error');
+          return;
+        }
+
+        // Password validation
+        if (newPassword || currentPassword || confirmPassword) {
+          if (!currentPassword) {
+            showToast('Current password is required to change password.', 'error');
+            return;
+          }
+          if (!newPassword) {
+            showToast('New password is required.', 'error');
+            return;
+          }
+          if (newPassword.length < 6) {
+            showToast('New password must be at least 6 characters long.', 'error');
+            return;
+          }
+          if (newPassword !== confirmPassword) {
+            showToast('New passwords do not match.', 'error');
+            return;
+          }
+        }
+
+        // Show confirmation modal with changes summary
+        const changes = getChangesSummary(originalData, currentData, !!newPassword);
+        if (changes.length === 0 && !newPassword) {
+          showToast('No changes detected.', 'warning');
+          return;
+        }
+
+        const changesHtml = changes.length > 0 ? 
+          '<ul class="changes-list">' + changes.map(change => `<li>${change}</li>`).join('') + '</ul>' : 
+          '<p>Password will be updated.</p>';
+
+        showConfirmModal('Are you sure you want to save these changes?', changesHtml, async () => {
+          await saveProfile(currentData, currentPassword, newPassword);
+        });
+      }
+    });
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function getChangesSummary(original, current, passwordChange) {
+      const changes = [];
+      
+      if (original.username !== current.username) {
+        changes.push(`Name: "${original.username}" → "${current.username}"`);
+      }
+      if (original.email !== current.email) {
+        changes.push(`Email: "${original.email}" → "${current.email}"`);
+      }
+      if (original.phone !== current.phone) {
+        changes.push(`Phone: "${original.phone}" → "${current.phone}"`);
+      }
+      if (original.department !== current.department) {
+        changes.push(`Department: "${original.department}" → "${current.department}"`);
+      }
+      if (passwordChange) {
+        changes.push('Password will be updated');
+      }
+      
+      return changes;
+    }
+
+    async function saveProfile(currentData, currentPassword, newPassword) {
+      const loadingToast = showToast('Saving profile changes...', 'info', 15000);
+
+      const payload = {
+        username: currentData.username,
+        contact: currentData.phone,
+        email: currentData.email,
+        department: currentData.department
+      };
+
+      // Add password fields if changing password
+      if (newPassword) {
+        payload.currentPassword = currentPassword;
+        payload.newPassword = newPassword;
+      }
+
+      const token = localStorage.getItem('token');
+      
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        removeToast(loadingToast);
+        
+        if (!res.ok) {
+          showToast(result.message || 'Update failed. Please try again.', 'error');
+          return;
+        }
+
+        // Update UI with new data
+        document.querySelector('.username').textContent = result.username;
+        document.querySelector('.user-email').textContent = result.email;
+        document.getElementById('sidebarUsername').textContent = result.username;
+
+        // Update token if provided
+        if (result.token) {
+          localStorage.setItem('token', result.token);
+        }
+
+        // Clear password fields
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+
+        // Disable editing mode
+        inputs.forEach(i => i.disabled = true);
+        passwordSection.style.display = 'none';
+        editSaveBtn.innerHTML = '<i class="bi bi-pencil"></i> Edit';
+        isEditing = false;
+
+        showToast('Profile updated successfully!', 'success');
+
+        // Handle email/password changes that require re-login
+        if (currentData.email !== originalData.email || newPassword) {
+          setTimeout(() => {
+            showToast('Important changes made. You will be redirected to login for security.', 'warning', 3000);
+            setTimeout(() => {
+              handleLogout(); // Use the enhanced logout function
+            }, 3000);
+          }, 2000);
+        }
+
+      } catch (error) {
+        removeToast(loadingToast);
+        console.error('Update error:', error);
+        showToast('Update failed. Please check your connection and try again.', 'error');
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+.relationship-container {
+    display: flex;
+    flex-wrap: wrap;
+    /* height: 100%; */
+    font-family: 'Inter', Arial, sans-serif;
+  }
+  
+  
+  .main-content {
+    /* margin-right: 5vw; */
+    background-color: #fff;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease-in-out;
+    font-family: Inter, Arial, sans-serif;
+}
+
+/* Section title */
+.main-content h1 {
+    color: #636ae8;
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+/* Tabs */
+/* Tabs Container */
+.tabs {
+  display: flex;
+  background-color: #e6e3fd;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  /* padding: 2px; */
+  justify-content: center;
+}
+
+/* Each Tab Button */
+.tab-btn {
+  flex: 1;
+  text-align: center;
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  /* cursor: pointer; */
+  font-size: 20px;
+  font-weight: 500;
+  transition: all 0.3s ease, color 0.3s ease;
+  border-radius: 10px;
+  color: #555;
+}
+
+
+
+/* Tab sections */
+.tab-section {
+    display: block;
+}
+
+.tab-section.hidden {
+    display: none;
+}
+
+/* Cards */
+.card {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.card p{
+  margin-top: -5px;
+  color:#64748B;
+}
+
+.card h2 {
+    margin-bottom: 8px;
+}
+
+.search-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.search-group input {
+    /* flex: 1; */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 300px;
+}
+
+.search-group button {
+  background-color: transparent;
+  color:rgb(79, 79, 79);
+  border: 1.5px solid #E9E9E9;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+}
+
+.search-group button:hover{
+ background-color: #636ae8;
+  color: white;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+thead {
+    background-color: #e7e7f5;
+}
+
+thead th {
+    text-align: left;
+    padding: 12px;
+    font-size: 14px;
+}
+
+tbody td {
+    font-size: 12px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+tbody tr:hover {
+    background-color: #f9f9ff;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 14vw;                         /* sit just to the right of the sidebar */
+  width: calc(100% - 14vw);
+  background: #fff;                   /* match page background */
+  /* padding: 0.75rem 0; */
+  font-size: 12px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Inter', sans-serif;
+  /*border-top: 1px solid #e0e0e0;      /* optional separator */
+  z-index: 10;
+}
+
+.online {
+    color: green;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  
+  .pagination span {
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    border: 1px solid #2d2b90;
+    border-radius: 50%;
+    color: #2d2b90;
+    cursor: pointer;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+  }
+  
+  /* Active page */
+  .pagination .active {
+    background-color: #2d2b90;
+    color: white;
+  }
+  
+  /* Remove circle border for Previous and Next */
+  .pagination span:first-child,
+  .pagination span:last-child {
+    border: none;
+    width: auto;
+    height: auto;
+    line-height: normal;
+    border-radius: 0;
+  }
+  
+  
+  
+
+.pagination .active {
+    background-color: #2d2b90;
+    color: white;
+}

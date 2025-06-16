@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relationship Analysis</title>
+  <link rel="stylesheet" href="../css/sidebar.css">
+  <link rel="stylesheet" href="/css/analysis.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  
+  <style>
+    .spinner {
+      width: 40px;
+      height: 40px;
+      margin: auto;
+      border: 5px solid #ccc;
+      border-top-color: #007bff; /* Blue */
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Toast Notification Styles */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 400px;
+    }
+
+    .toast {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+      opacity: 0;
+      position: relative;
+    }
+
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .toast.hide {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .toast-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-message {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .toast-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+
+    .toast-close:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    .toast-progress {
+      height: 3px;
+      background: rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toast-progress::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: currentColor;
+      animation: toast-progress 4s linear forwards;
+    }
+
+    @keyframes toast-progress {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    /* Toast Types */
+    .toast-success {
+      border-left: 4px solid #10b981;
+      color: #10b981;
+    }
+
+    .toast-error {
+      border-left: 4px solid #ef4444;
+      color: #ef4444;
+    }
+
+    .toast-warning {
+      border-left: 4px solid #f59e0b;
+      color: #f59e0b;
+    }
+
+    .toast-info {
+      border-left: 4px solid #3b82f6;
+      color: #3b82f6;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .toast-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+      }
+    }
+  </style>
+
+<script>
+(function() {
+  // 1. Clear any stale data and check token immediately
+  const token = localStorage.getItem("token");
+  if (!token) {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace("login.html");
+    return;
+  }
+
+  // 2. Enhanced history manipulation to prevent back navigation
+  function preventBackNavigation() {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+        return;
+      }
+      window.history.pushState(null, "", window.location.href);
+    };
+  }
+  
+  preventBackNavigation();
+
+  // 3. Validate token with server immediately
+  fetch('/api/auth/me', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => {
+    if (!res.ok) {
+      throw new Error('Token validation failed');
+    }
+    return res.json();
+  })
+  .then(user => {
+    console.log('Session validated for:', user.email);
+    // Update user info in localStorage if needed
+    localStorage.setItem("user", JSON.stringify(user));
+  })
+  .catch(error => {
+    console.error('Token validation failed:', error);
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.replace('login.html');
+  });
+
+  // 4. Listen for logout in other tabs/windows
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'token' && !e.newValue) {
+      // Token was removed in another tab - logout this tab too
+      window.location.replace('login.html');
+    }
+  });
+
+  // 5. Periodic token validation (every 5 minutes)
+  setInterval(() => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) {
+      window.location.replace("login.html");
+      return;
+    }
+    
+    // Validate token with server
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + currentToken }
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('Token expired or invalid');
+      }
+    })
+    .catch(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace('login.html');
+    });
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // 6. Handle page visibility changes (when user returns to tab)
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      const currentToken = localStorage.getItem("token");
+      if (!currentToken) {
+        window.location.replace("login.html");
+      }
+    }
+  });
+
+})();
+</script>
+
+</head>
+
+<body>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script>
+    // 1) Redirect to login if no token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+      throw new Error('Not authenticated');
+    }
+
+    // 2) Fetch current user and populate sidebar / forms
+    fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(user => {
+        document.getElementById('sidebarUsername').textContent = user.username;
+        document.getElementById('sidebarProfilePic').src =
+          user.profilePic || document.getElementById('sidebarProfilePic').src;
+
+        const data = {
+          fullName: user.username,
+          email: user.email,
+          phone: user.contact,
+          department: user.department
+        };
+        Object.entries(data).forEach(([key, val]) => {
+          const el = document.getElementById(key) || document.querySelector(`.${key}`);
+          if (!el) return;
+          if (el.tagName === 'INPUT') el.value = val;
+          else el.textContent = val;
+        });
+      })
+      .catch(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+  </script>
+
+  <div class="miniScreenContainer">
+    <h1>Please view in a larger device</h1>
+  </div>
+  <div class="relationship-container">
+    <div class="sidebar-menu">
+      <div class="sidebar-header">
+        <a href="">
+          <p class="largeTitle">ARM Dashboard</p>
+          <p class="smallTitle">ARM</p>
+        </a>
+      </div>
+      <div class="sidebar-nav">
+        <nav>
+          <a href="Dashboard.html">
+            <img src="image/home.png" class="icon" alt="Home" />
+            <span>Dashboard</span>
+          </a>
+          <a href="relationship-mapping.html">
+            <img src="image/rm icon.png" class="icon" alt="Relationship Mapping" />
+            <span>Relationship Mapping</span>
+          </a>
+          <a href="analysis.html" class="active">
+            <img src="image/ai icon.png" class="icon" alt="Analysis" />
+            <span>Analysis</span>
+          </a>
+          <a href="records.html">
+            <img src="image/record icon.png" class="icon" alt="Citizen Record" />
+            <span>Citizen Record</span>
+          </a>
+          <a href="audit.html">
+            <img src="image/audit icon.png" class="icon" alt="Audit Log" />
+            <span>Audit Log</span>
+          </a>
+          <button id="logoutBtn" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>&nbsp; <span>Logout</span>
+          </button>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <a href="userprofile.html">
+          <img id="sidebarProfilePic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-img"
+            alt="User profile" />
+          <p id="sidebarUsername">Username</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="content-header">
+        <h1>Find Relationship</h1>
+        <p>Quick Relationship Analyzer</p>
+      </div>
+      <div class="form-header">
+        <h1>Discover Citizens Relation</h1>
+        <p>Enter CIDs to discover how they might be related</p>
+      </div>
+      <div class="relation-form">
+        <input type="text" id="cid1" placeholder="👤 Enter CID of person A" class="input-box" />
+        <button class="analyze-btn" onclick="predictRelationship()">Analyze</button>
+        <input type="text" id="cid2" placeholder="👤 Enter CID of person B" class="input-box" />
+      </div>
+      <section class="analysis-results">
+        <div class="result-box1">
+          <h3>Relationship Analysis Result(s)</h3>
+          <p>Predict relationship and evidence</p>
+        </div>
+        <div class="result-box2">
+          <div class="content">
+            <div class="box2-content">
+              <h3>Analysis Result</h3>
+              <p>AI-generated insights about the relationship between the two citizens</p>
+            </div>
+            <div class="box2-content2">
+              <button class="save-btn"><i class="fas fa-image"></i> Export Image</button>
+              <button class="export-btn"><i class="fas fa-file-pdf"></i> Export PDF</button>
+            </div>
+          </div>
+
+          <!-- ✅ Loading Message -->
+          <div id="loading-message" style="display: none; text-align: center; padding: 20px;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; font-weight: bold;">Analyzing, please wait...</p>
+          </div>
+
+          <!-- Results Grid -->
+          <div class="grid-container" id="grid-container">
+            <div class="item wide First">
+              <h4>Relationship Type :</h4>
+              <p id="relation-type">---</p>
+            </div>
+            <div class="item wide percentage">
+              <h1 id="accuracy-percentage">--%</h1>
+              <p>Accuracy percentage</p>
+            </div>
+            <div class="item large findings">
+              <h4>Key Findings :</h4>
+              <div id="key-findings"></div>
+            </div>
+            <div class="item large disclaimer">
+              <h4>AI-Generated Content Disclaimer</h4>
+              <p>
+                This analysis is generated by artificial intelligence and may not be 100% accurate. Results should be
+                verified
+                through additional sources before making important decisions. The system provides estimates based on
+                available
+                data and should be used as a starting point for further investigation, not as definitive proof of
+                relationships.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer>
+        <p>Copyright © 2025 Anti-Corruption Commission of Bhutan. All rights reserved.</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Enhanced Logout Handler Script -->
+<!-- Enhanced Logout Handler Script with Confirmation -->
+<script>
+  // Enhanced logout function with confirmation
+  async function handleLogout() {
+    // Show confirmation toast
+    showLogoutConfirmation();
+  }
+
+  function showLogoutConfirmation() {
+    // Create custom confirmation toast
+    const toastContainer = document.getElementById('toast-container');
+    const confirmToast = document.createElement('div');
+    confirmToast.className = 'toast toast-warning';
+    confirmToast.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateX(0);
+      opacity: 1;
+      position: relative;
+      border-left: 4px solid #f59e0b;
+      color: #f59e0b;
+      min-width: 350px;
+    `;
+    
+    confirmToast.innerHTML = `
+      <div style="display: flex; align-items: center; padding: 16px; gap: 12px;">
+        <div style="font-size: 20px; flex-shrink: 0;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 600; margin-bottom: 8px;">Confirm Logout</div>
+          <div style="font-size: 14px; line-height: 1.4; color: #666;">
+            Are you sure you want to logout? You will need to login again to access the system.
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button onclick="confirmLogout()" style="
+              background: #ef4444; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+              <i class="fas fa-sign-out-alt"></i> Yes, Logout
+            </button>
+            <button onclick="cancelLogout()" style="
+              background: #6b7280; 
+              color: white; 
+              border: none; 
+              padding: 8px 16px; 
+              border-radius: 4px; 
+              cursor: pointer; 
+              font-size: 12px;
+              font-weight: 500;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.background='#4b5563'" onmouseout="this.style.background='#6b7280'">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    toastContainer.appendChild(confirmToast);
+    
+    // Auto-cancel after 10 seconds
+    setTimeout(() => {
+      if (confirmToast.parentElement) {
+        cancelLogout();
+      }
+    }, 10000);
+  }
+
+ async function confirmLogout() {
+  // Remove confirmation toast
+  const confirmToast = document.querySelector('.toast-warning');
+  if (confirmToast) {
+    confirmToast.remove();
+  }
+
+  // Show logout progress
+  const logoutToast = showToast('Logging out...', 'info', 5000);
+  
+  const token = localStorage.getItem('token');
+  
+  try {
+    // Call logout API to log the action
+    if (token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Logout API failed:', error);
+    // Continue with logout even if API fails
+  }
+
+  // Always clear all storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Clear any browser cache if possible
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => caches.delete(name));
+    });
+  }
+
+  removeToast(logoutToast);
+  showToast('Logout successful. Redirecting...', 'success', 1500);
+  
+  // Force redirect with replace to prevent back navigation
+  setTimeout(() => {
+    // Clear history and redirect
+    window.history.replaceState(null, "", "login.html");
+    window.location.replace('login.html');
+  }, 1000);
+}
+
+  function cancelLogout() {
+    // Remove confirmation toast
+    const confirmToast = document.querySelector('.toast-warning');
+    if (confirmToast) {
+      confirmToast.remove();
+    }
+    showToast('Logout cancelled', 'info', 2000);
+  }
+
+  // Alternative: Simple browser confirm (uncomment if you prefer this approach)
+  /*
+  async function handleLogoutSimple() {
+    if (confirm('Are you sure you want to logout?')) {
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            }
+          });
+          console.log('Logout logged successfully');
+        } catch (error) {
+          console.error('Failed to log logout:', error);
+        }
+      }
+      
+      localStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+  */
+
+  // Attach logout handler
+  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+
+  // Handle browser close/refresh to log logout (no confirmation needed for this)
+  window.addEventListener('beforeunload', async (e) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Use sendBeacon for reliable logout logging on page unload
+        const data = JSON.stringify({});
+        navigator.sendBeacon('/api/auth/logout', new Blob([data], {
+          type: 'application/json'
+        }));
+      } catch (error) {
+        console.error('Failed to log logout on page unload:', error);
+      }
+    }
+  });
+
+  // Keyboard shortcut for logout (Ctrl+Shift+L) with confirmation
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+      e.preventDefault();
+      handleLogout();
+    }
+  });
+</script>
+
+
+  <!-- Toast Notification System -->
+  <!-- Toast Notification System -->
+<script>
+  // Valid Dzongkhag codes from Bhutan's administrative structure
+  const VALID_DZONGKHAG_CODES = [
+    "01", "02", "03", "04", "05", "06", "07", "08", "09", "10",
+    "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"
+  ];
+
+  // Dzongkhag names for better error messages
+  const DZONGKHAG_NAMES = {
+    "01": "Bumthang", "02": "Chukha", "03": "Dagana", "04": "Gasa", "05": "Haa",
+    "06": "Lhuentse", "07": "Mongar", "08": "Paro", "09": "Pemagatshel", "10": "Punakha",
+    "11": "Samdrupjongkhar", "12": "Samtse", "13": "Sarpang", "14": "Thimphu", "15": "Trashigang",
+    "16": "Trashiyangtse", "17": "Trongsa", "18": "Tsirang", "19": "Wangdue Phodrang", "20": "Zhemgang"
+  };
+
+  function validateCID(cid) {
+    // Check if CID is provided
+    if (!cid) {
+      return {
+        isValid: false,
+        message: "CID number is required. Please enter a valid CID.",
+        type: "warning"
+      };
+    }
+
+    // Check if CID contains only digits
+    if (!/^\d+$/.test(cid)) {
+      return {
+        isValid: false,
+        message: "CID must contain only digits (0-9). Please remove any letters or symbols.",
+        type: "error"
+      };
+    }
+
+    // Check if CID is exactly 11 digits
+    if (cid.length < 11) {
+      return {
+        isValid: false,
+        message: `CID must be exactly 11 digits. You entered ${cid.length} digits (${11 - cid.length} more needed).`,
+        type: "error"
+      };
+    }
+
+    if (cid.length > 11) {
+      return {
+        isValid: false,
+        message: `CID must be exactly 11 digits. You entered ${cid.length} digits (${cid.length - 11} too many).`,
+        type: "error"
+      };
+    }
+
+    // Extract dzongkhag code (first 2 digits)
+    const dzongkhagCode = cid.substring(0, 2);
+
+    // Check if dzongkhag code is valid
+    if (!VALID_DZONGKHAG_CODES.includes(dzongkhagCode)) {
+      return {
+        isValid: false,
+        message: `Invalid dzongkhag code "${dzongkhagCode}". Valid codes are: ${VALID_DZONGKHAG_CODES.join(", ")}.`,
+        type: "error"
+      };
+    }
+
+    // Check for obviously invalid patterns (like all same digits)
+    if (/^(\d)\1{10}$/.test(cid)) {
+      return {
+        isValid: false,
+        message: "CID cannot consist of the same digit repeated 11 times.",
+        type: "error"
+      };
+    }
+
+    // If all validations pass
+    const dzongkhagName = DZONGKHAG_NAMES[dzongkhagCode];
+    return {
+      isValid: true,
+      message: `Valid CID from ${dzongkhagName} (${dzongkhagCode}).`,
+      type: "success"
+    };
+  }
+
+  // Toast notification system
+  function showToast(message, type = 'info', duration = 4000) {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = getToastIcon(type);
+    toast.innerHTML = `
+      <div class="toast-content">
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">&times;</button>
+      </div>
+      <div class="toast-progress"></div>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Auto remove
+    setTimeout(() => removeToast(toast), duration);
+    
+    return toast;
+  }
+
+  function getToastIcon(type) {
+    const icons = {
+      success: '<i class="fas fa-check-circle"></i>',
+      error: '<i class="fas fa-exclamation-circle"></i>',
+      warning: '<i class="fas fa-exclamation-triangle"></i>',
+      info: '<i class="fas fa-info-circle"></i>'
+    };
+    return icons[type] || icons.info;
+  }
+
+  function removeToast(toast) {
+    toast.classList.add('hide');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+    }, 300);
+  }
+
+  // Enhanced prediction function with toast notifications
+  function predictRelationship() {
+    const cid1 = document.getElementById("cid1").value.trim();
+    const cid2 = document.getElementById("cid2").value.trim();
+
+    // Enhanced validation with toast notifications
+    if (!cid1 || !cid2) {
+      showToast("Please enter both CID numbers to analyze their relationship.", "warning");
+      return;
+    }
+
+    // Enhanced CID validation for Person A
+    const cid1Validation = validateCID(cid1);
+    if (!cid1Validation.isValid) {
+      showToast(`Person A: ${cid1Validation.message}`, cid1Validation.type);
+      return;
+    }
+
+    // Enhanced CID validation for Person B
+    const cid2Validation = validateCID(cid2);
+    if (!cid2Validation.isValid) {
+      showToast(`Person B: ${cid2Validation.message}`, cid2Validation.type);
+      return;
+    }
+
+    if (cid1 === cid2) {
+      showToast("Please enter different CID numbers. Both CIDs are the same.", "warning");
+      return;
+    }
+
+    // Show success message for valid CIDs
+    showToast(`Valid CIDs: ${DZONGKHAG_NAMES[cid1.substring(0, 2)]} & ${DZONGKHAG_NAMES[cid2.substring(0, 2)]}`, "success", 3000);
+
+    document.getElementById("loading-message").style.display = "block";
+    document.getElementById("grid-container").style.display = "none";
+    
+    showToast("Analyzing relationship between the two citizens...", "info", 8000);
+
+    fetch("http://localhost:5000/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cid1, cid2 })
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("API Response:", data);
+
+        document.getElementById("loading-message").style.display = "none";
+        document.getElementById("grid-container").style.display = "grid";
+
+        const explanation = data.explanation || {};
+        const relationType = explanation.rule_based || explanation.ai_prediction || "Unknown";
+        const confidence = typeof explanation.confidence === "number" ? `${explanation.confidence}%` : "--%";
+        const explanationText = typeof explanation.explanation === "string" ? explanation.explanation : "";
+
+        document.getElementById("relation-type").innerText = relationType;
+        document.getElementById("accuracy-percentage").innerText = confidence;
+
+        const lines = explanationText.split("\n").filter(line => line.trim() !== "");
+        const findings = lines.filter(line => line.startsWith("-"));
+        document.getElementById("key-findings").innerHTML =
+          findings.length ? findings.map(line => `<p>${line}</p>`).join("") : "<p>No key findings available.</p>";
+
+        showToast(`Analysis complete! Relationship identified as: ${relationType}`, "success");
+
+        // 🔄 Save to database
+        const token = localStorage.getItem("token");
+        if (token) {
+          fetch("/api/analysis/save", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ cid1, cid2, relation: relationType })
+          })
+            .then(res => res.json())
+            .then(saveRes => {
+              console.log("Saved to DB:", saveRes);
+            })
+            .catch(err => {
+              console.error("Error saving analysis:", err);
+            });
+
+          fetch('/api/audit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('token')
+            },
+            body: JSON.stringify({
+              action: 'RELATIONSHIP_ANALYSIS',
+              detail: `Analyzed relationship between CID ${cid1} and ${cid2} with result: ${relationType}`
+            })
+          })
+            .then(res => res.json())
+            .then(logRes => {
+              console.log('Audit log recorded:', logRes);
+            })
+            .catch(err => {
+              console.error('Audit log failed:', err);
+            });
+        }
+      })
+      .catch(err => {
+        console.error("Prediction error:", err);
+        document.getElementById("loading-message").style.display = "none";
+        showToast("Analysis failed. Please check your connection and try again.", "error");
+      });
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar-menu');
+    const content = document.querySelector('.main-content');
+    sidebar.classList.toggle('collapsed');
+    sidebar.classList.toggle('mobile-hidden');
+    content.classList.toggle('full-width');
+  }
+
+  window.onload = function () {
+    document.getElementById('grid-container').style.display = 'none';
+  };
+</script>
+
+  <script>
+    document.querySelector(".save-btn").addEventListener("click", function () {
+      const sidebar = document.querySelector(".sidebar-menu");
+      const originalDisplay = sidebar.style.display;
+      const loadingToast = showToast('Generating image export...', 'info', 10000);
+
+      // Hide sidebar
+      sidebar.style.display = "none";
+
+      html2canvas(document.querySelector(".main-content")).then(canvas => {
+        removeToast(loadingToast);
+        const link = document.createElement("a");
+        link.download = "relationship-analysis.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        // Show sidebar back after capture
+        sidebar.style.display = originalDisplay;
+        showToast('Image exported successfully!', 'success');
+      }).catch(err => {
+        removeToast(loadingToast);
+        sidebar.style.display = originalDisplay;
+        console.error('Error generating image:', err);
+        showToast('Failed to export image. Please try again.', 'error');
+      });
+    });
+  </script>
+
+  <script>
+    document.querySelector(".export-btn").addEventListener("click", async function () {
+      const sidebar = document.querySelector(".sidebar-menu");
+      const originalDisplay = sidebar.style.display;
+      const loadingToast = showToast('Generating PDF export...', 'info', 10000);
+
+      sidebar.style.display = "none"; // Hide sidebar
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const canvas = await html2canvas(document.querySelector(".main-content"));
+        const imgData = canvas.toDataURL("image/png");
+
+        const pdf = new jsPDF();
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save("relationship-analysis.pdf");
+
+        removeToast(loadingToast);
+        sidebar.style.display = originalDisplay; // Restore sidebar
+        showToast('PDF exported successfully!', 'success');
+      } catch (err) {
+        removeToast(loadingToast);
+        sidebar.style.display = originalDisplay;
+        console.error('Error generating PDF:', err);
+        showToast('Failed to export PDF. Please try again.', 'error');
+      }
+    });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sidebarUsername = document.getElementById("sidebarUsername");
+      const sidebarProfilePic = document.getElementById("sidebarProfilePic");
+
+      const storedUser = JSON.parse(localStorage.getItem("user")) || {};
+      const storedProfilePic = localStorage.getItem("profilePic");
+
+      const fullName = storedUser.fullName || storedUser.username || "User";
+      if (sidebarUsername) {
+        sidebarUsername.textContent = fullName;
+      }
+
+      if (sidebarProfilePic && storedProfilePic) {
+        sidebarProfilePic.src = storedProfilePic;
+      }
+    });
+  </script>
+
+</body>
+
+</html>
