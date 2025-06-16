@@ -12,7 +12,7 @@ async function getDashboardStats() {
   try {
     await client.connect();
     const db = client.db(dbName);
-    const totalUsers = await db.collection('user_data').countDocuments();
+    const totalUsers = await db.collection('users').countDocuments();
     const relationshipsMapped = await db.collection('relationship_data').countDocuments();
     const aiAnalysis = await db.collection('analysis_data').countDocuments();
 

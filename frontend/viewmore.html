@@ -16,20 +16,15 @@
       <div class="content-container">
         <!-- Header -->
         <div class="header">
-          <h1>Relationship Mapping</h1>
-          <button class="back-btn" onclick="history.back()">
-            <i class="bi bi-arrow-left"></i> Back
-          </button>        
+          <h1>Individual Details</h1>
+                
         </div>
 
         <!-- Personal Information -->
         <div class="card">
           <div class="card-header">
             <h3>Personal Information</h3>
-            <div class="actions">
-              <button><i class="bi bi-save"></i> Save</button>
-              <button><i class="bi bi-download"></i> Export</button>
-            </div>
+            
           </div>
           <div class="profile-top">
             <img src="https://randomuser.me/api/portraits/men/31.jpg" class="profile-pic" />
@@ -44,7 +39,7 @@
             <div><label>Religion:</label><input type="text" value="religion" /></div>
             <div><label>Occupation:</label><input type="text" value="occupation" /></div>
             <div><label>Higher Education Attained:</label><input type="text" value="education" /></div>
-            <div><label>Citizenship By:</label><input type="text" value="citizen type" /></div>
+            <!-- <div><label>Citizenship By:</label><input type="text" value="citizen type" /></div> -->
           </div>
         </div>
 
@@ -53,10 +48,10 @@
           <div class="card-header">
             <h3>Household Information</h3>
             <button onclick="toggleCollapse(this)" class="collapse-btn">
-              <i class="bi bi-chevron-up"></i> Collapse
+              <i class="bi bi-chevron-down"></i> Expand
             </button>
           </div>
-          <div class="grid">
+          <div class="grid" data-collapsed="true" style="max-height: 0px; opacity: 0; overflow: hidden;">
             <div><label>Household No:</label><input type="text" value="household no" /></div>
             <div><label>House No:</label><input type="text" value="house no" /></div>
             <div><label>Thram No:</label><input type="text" value="thram no" /></div>
@@ -73,10 +68,10 @@
             <div class="card-header">
                 <h3>Father's Details</h3>
                 <button onclick="toggleCollapse(this)" class="collapse-btn">
-                  <i class="bi bi-chevron-up"></i> Collapse
+                  <i class="bi bi-chevron-down"></i> Expand
                 </button>
               </div>
-            <div class="grid">
+            <div class="grid" data-collapsed="true" style="max-height: 0px; opacity: 0; overflow: hidden;">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>
@@ -93,10 +88,10 @@
             <div class="card-header">
                 <h3>Mother's Details</h3>
                 <button onclick="toggleCollapse(this)" class="collapse-btn">
-                  <i class="bi bi-chevron-up"></i> Collapse
+                  <i class="bi bi-chevron-down"></i> Expand
                 </button>
               </div>
-            <div class="grid">
+            <div class="grid" data-collapsed="true" style="max-height: 0px; opacity: 0; overflow: hidden;">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>
@@ -113,10 +108,10 @@
             <div class="card-header">
                 <h3>Spouse Details</h3>
                 <button onclick="toggleCollapse(this)" class="collapse-btn">
-                  <i class="bi bi-chevron-up"></i> Collapse
+                  <i class="bi bi-chevron-down"></i> Expand
                 </button>
               </div>
-            <div class="grid">
+            <div class="grid" data-collapsed="true" style="max-height: 0px; opacity: 0; overflow: hidden;">
             <div><label>Name:</label><input type="text" value="name" /></div>
             <div><label>CID No:</label><input type="text" value="cid no" /></div>
             <div><label>Household No:</label><input type="text" value="household no" /></div>

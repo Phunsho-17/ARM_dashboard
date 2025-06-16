@@ -8,12 +8,12 @@ cid2 = int(sys.argv[2])
 
 # Initialize the pipeline
 pipeline = RelationshipPipeline(
-    model_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/RGCN_model.pth",
-    features_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/x_features.pt",         
-    edge_index_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/edge_index.pt",
-    edge_type_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/edge_type.pt",
-    cid_map_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/cid_to_idx.pkl",
-    df_path="C:/Users/sonam/OneDrive/Desktop/Acc_Dashboard/outputs/df.csv"
+    model_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/RGCN_model.pth",
+    features_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/x_features.pt",         
+    edge_index_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/edge_index.pt",
+    edge_type_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/edge_type.pt",
+    cid_map_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/cid_to_idx.pkl",
+    df_path="C:/Users/sonam/Downloads/Acc_Dashboard/outputs/df.csv"
 )
 
 

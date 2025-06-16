@@ -1,6 +1,25 @@
-// viewmore.js
+const DEFAULT_AVATAR =
+  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjUwIiBjeT0iMzciIHI9IjE1IiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0yMCA3NUMyMCA2NS4wNTg5IDI4LjA1ODkgNTcgMzggNTdINjJDNzEuOTQxMSA1NyA4MCA2NS4wNTg5IDgwIDc1VjgwSDIwVjc1WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K"
 
-const bearerToken = "eyJ4NXQiOiJOV1psTVRZd09HVmhNMk5tT1RBek4ySTJOMkk0TkdVeU1UQXlOamszTkdKak9UVXhPVGd3T1EiLCJraWQiOiJOVEF3TmpWaU56azBOVGc1WlRZM056SmxOVFl4Tmpka1lXWTFPRGxtTkRSaVpqYzRNR1kyTTJSbVlqVm1ZVEExTjJReU56azJOMlU1TUdVeU5HVTBOUV9SUzI1NiIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJhY2MiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6IkFnQWp3OG9CNm1QSlFZc0pTc3p1SmFFM2toNGEiLCJuYmYiOjE3NDcyODg1NjMsImF6cCI6IkFnQWp3OG9CNm1QSlFZc0pTc3p1SmFFM2toNGEiLCJzY29wZSI6ImFjY2Vzc190b2tlbiIsImlzcyI6Imh0dHBzOlwvXC9zc28uZGl0Lmdvdi5idFwvb2F1dGgyXC90b2tlbiIsImV4cCI6MTc0NzI5MjE2MywiaWF0IjoxNzQ3Mjg4NTYzLCJqdGkiOiJiZjNiZTA2NS1jMGE3LTQ5NDAtOGNhNC01MTU0YzM4NTZjNDgifQ.eAS9hO9JWd2Fj8819MnOx2ViAtj7uokzDio8WS8V59jbAKtnAT5onvEZpqpBc2FFCgIq6tq_eFNrB0Noualvw98JD4bQuUuOkRjq78LeCusY77M-wmKFI9pCI8O4aEKlXiOGoXKrt-5DQwrt8XOlkzFHDisg5OoU-uv4MmO7b2U47X29mhMuta4_dNU5Wpam9-XvMzAOXoN9Xn6TQntHatecq6z6Fsz_rnCUAc9b-5CxTzz6cBk9y8eZP0HboB_Hcdh9WXqkZt6PeXOQgJPg3MVcawF1dRDT881YYgOi-PsK6KQTRQRX6SXCittEtCJhrei1_35MvxFtQtUl_2Q0Ag"; // Replace with your real token
+
+let bearerToken = null;
+
+async function fetchToken() {
+  if (bearerToken) return bearerToken;
+
+  try {
+    const res = await fetch('http://localhost:5000/api/get-token');
+    const data = await res.json();
+    if (!data.token) throw new Error("No token received");
+    bearerToken = data.token;
+    return bearerToken;
+  } catch (err) {
+    console.error("Failed to fetch token", err);
+    alert("Failed to fetch authorization token.");
+    throw err;
+  }
+}
+
 const CITIZEN_API = "https://datahub-apim.tech.gov.bt/dcrc_citizen_details_api/1.0.0/citizendetails/";
 const FAMILY_API = "https://datahub-apim.tech.gov.bt/dcrc_family_details_api/1.0.0/familyDetailsByHouseHoldNo/";
 const IMAGE_API = "https://datahub-apim.tech.gov.bt/dcrc_restimagesapi/1.0.0/citizenImage/";
@@ -21,27 +40,24 @@ async function loadProfile(cid) {
   }
 
   setPersonalInfo(citizen);
-  setImage(cid);
+  await setImage(cid);
 
-  // Father
   if (citizen.fatherCIDNo) {
     const father = await fetchCitizen(citizen.fatherCIDNo);
     if (father) setFamilySection("Father", father);
   }
 
-  // Mother
   if (citizen.motherCIDNo) {
     const mother = await fetchCitizen(citizen.motherCIDNo);
     if (mother) setFamilySection("Mother", mother);
   }
 
-  // Spouse (scan household children to detect)
   if (citizen.householdNo) {
     const family = await fetchHousehold(citizen.householdNo);
 
     let spouseCID = null;
     for (const member of family) {
-      if ((member.fatherCID === cid || member.motherCID === cid)) {
+      if (member.fatherCID === cid || member.motherCID === cid) {
         const otherCID = (member.fatherCID === cid) ? member.motherCID : member.fatherCID;
         if (otherCID && otherCID !== cid) {
           spouseCID = otherCID;
@@ -57,11 +73,9 @@ async function loadProfile(cid) {
   }
 }
 
-// -------------------------
-// Section Fill Functions
-// -------------------------
 function setPersonalInfo(data) {
-  document.querySelector(".profile-pic").src = "https://randomuser.me/api/portraits/men/31.jpg";
+  // Set default first, will be replaced if image found
+  document.querySelector(".profile-pic").src = DEFAULT_AVATAR;
   setInputValue('input[value="citizen name"]', `${data.firstName || ''} ${data.lastName || ''}`.trim());
   setInputValue('input[value="citizenship id"]', data.cid);
   setInputValue('input[value="gender"]', data.gender);
@@ -101,13 +115,11 @@ function setInputValue(selector, value) {
   if (input) input.value = value || "Not Available";
 }
 
-// -------------------------
-// API Fetch Functions
-// -------------------------
 async function fetchCitizen(cid) {
   try {
+    const token = await fetchToken();
     const res = await fetch(CITIZEN_API + cid, {
-      headers: { Authorization: "Bearer " + bearerToken }
+      headers: { Authorization: "Bearer " + token }
     });
     const json = await res.json();
     return json.citizenDetailsResponse?.citizenDetail?.[0] || null;
@@ -118,8 +130,9 @@ async function fetchCitizen(cid) {
 
 async function fetchHousehold(householdNo) {
   try {
+    const token = await fetchToken();
     const res = await fetch(FAMILY_API + householdNo, {
-      headers: { Authorization: "Bearer " + bearerToken }
+      headers: { Authorization: "Bearer " + token }
     });
     const json = await res.json();
     return json.familyDetails?.familyDetail || [];
@@ -130,15 +143,27 @@ async function fetchHousehold(householdNo) {
 
 async function setImage(cid) {
   try {
+    const token = await fetchToken();
     const res = await fetch(IMAGE_API + cid, {
-      headers: { Authorization: "Bearer " + bearerToken }
+      headers: { Authorization: "Bearer " + token }
     });
+
+    if (!res.ok) {
+      // Handle API errors (e.g., 500 or 404)
+      console.error(`Error fetching image for CID ${cid}. API returned status: ${res.status}. Using default avatar.`);
+      document.querySelector(".profile-pic").src = DEFAULT_AVATAR;
+      return;
+    }
+
     const json = await res.json();
     const b64 = json.citizenimages?.citizenimage?.[0]?.image;
     if (b64) {
       document.querySelector(".profile-pic").src = `data:image/jpeg;base64,${b64}`;
+    } else {
+      document.querySelector(".profile-pic").src = DEFAULT_AVATAR;
     }
-  } catch {
-    // Keep default image
+  } catch (error) {
+    console.error(`Failed to fetch image for CID ${cid}. Error: ${error}. Using default avatar.`);
+    document.querySelector(".profile-pic").src = DEFAULT_AVATAR; // Set default avatar on error
   }
 }

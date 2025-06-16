@@ -29,7 +29,7 @@
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 20px;
-  padding: 6px;
+  /* padding: 2px; */
   justify-content: center;
 }
 
@@ -37,24 +37,17 @@
 .tab-btn {
   flex: 1;
   text-align: center;
-  padding: 12px 20px;
+  padding: 2px 8px;
   border: none;
   background: transparent;
-  cursor: pointer;
-  font-size: 16px;
+  /* cursor: pointer; */
+  font-size: 20px;
   font-weight: 500;
   transition: all 0.3s ease, color 0.3s ease;
   border-radius: 10px;
   color: #555;
 }
 
-/* Active Tab Styling */
-.tab-btn.active {
-  background-color: #ffffff;
-  color: #000;
-  font-weight: 600;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
-}
 
 
 /* Tab sections */
@@ -143,6 +136,21 @@ tbody td {
 
 tbody tr:hover {
     background-color: #f9f9ff;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 14vw;                         /* sit just to the right of the sidebar */
+  width: calc(100% - 14vw);
+  background: #fff;                   /* match page background */
+  /* padding: 0.75rem 0; */
+  font-size: 12px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Inter', sans-serif;
+  /*border-top: 1px solid #e0e0e0;      /* optional separator */
+  z-index: 10;
 }
 
 .online {

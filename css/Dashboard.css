@@ -111,11 +111,18 @@
 }
 
 footer {
-  margin-top: 30px;
+  position: fixed;
+  bottom: 0;
+  left: 14vw;                         /* sit just to the right of the sidebar */
+  width: calc(100% - 14vw);
+  background: #fff;                   /* match page background */
+  /* padding: 0.75rem 0; */
   font-size: 12px;
   text-align: center;
   color: #aaa;
   font-family: 'Inter', sans-serif;
+  /*border-top: 1px solid #e0e0e0;      /* optional separator */
+  z-index: 10;
 }
 
 @media (max-width: 768px) {
@@ -135,4 +142,62 @@ footer {
   .content-grid {
     align-items: stretch;
   }
+}
+<!-- Add this CSS to your existing <style> section in dashboard.html -->
+/* Add these loading styles to your existing CSS */
+.card-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.card-error {
+  color: #ef4444;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.card-error:hover {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.chart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.retry-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background: #2563eb;
 }

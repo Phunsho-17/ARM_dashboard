@@ -7,7 +7,7 @@
 
 .main-content {
   width: calc(100% - 14vw);
-  padding: 1rem 0;
+  padding: 1rem 0 0 0;
   position: relative;
 }
 
@@ -247,10 +247,25 @@ input::placeholder {
   color: #92400E;
 }
 
-.footer-text {
+/* .footer-text {
   font-size: 11px;
   color: #9F9F9F;
   text-align: center;
+} */
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 14vw;                         /* sit just to the right of the sidebar */
+  width: calc(100% - 14vw);
+  background: #fff;                   /* match page background */
+  /* padding: 0.75rem 0; */
+  font-size: 12px;
+  text-align: center;
+  color: #aaa;
+  font-family: 'Inter', sans-serif;
+  /*border-top: 1px solid #e0e0e0;      /* optional separator */
+  z-index: 10;
 }
 
 /* COLLAPSIBLE SIDEBAR STYLES */
