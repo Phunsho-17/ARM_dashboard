@@ -34,4 +34,5 @@ This project is a web-based system developed for the **Anti-Corruption Commissio
 
 - 🙍‍♂️ **User Profile Page**
 
+**Not deployed yet – internal use only**
 
